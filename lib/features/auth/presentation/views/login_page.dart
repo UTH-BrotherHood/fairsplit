@@ -1,7 +1,9 @@
+import 'package:fairsplit/core/utils/snarbar.dart';
 import 'package:fairsplit/core/utils/validators.dart';
 import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.dart';
 import 'package:fairsplit/features/auth/presentation/views/sign_up_page.dart';
 import 'package:fairsplit/features/auth/presentation/widgets/auth_gradient_button.dart';
+import 'package:fairsplit/features/profile/presentation/viewmodels/profile_view_model.dart';
 import 'package:fairsplit/shared/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,24 +37,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   login() async {
-    ref
-        .read(authViewModelProvider.notifier)
-        .login(email: controllers[0].text, password: controllers[1].text);
+    try {
+      await ref
+          .read(authViewModelProvider.notifier)
+          .login(email: controllers[0].text, password: controllers[1].text);
+      if (!mounted) return;
+      ref.invalidate(profileViewModelProvider);
+      context.go('/');
+    } catch (e) {
+      if (!mounted) return;
+      showSnackBar(
+        content: e.toString(),
+        context: context,
+        backgroundColor: Colors.red,
+      );
+    }
   }
 
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authViewModelProvider);
-
-    if (user != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/');
-      });
-    }
-
     return Scaffold(
+      // backgroundColor: const Color(0xFF121212),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -128,7 +135,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           style: TextStyle(
             fontSize: 38,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            // color: Colors.white,
             letterSpacing: 1.2,
           ),
         ),

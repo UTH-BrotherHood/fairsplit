@@ -6,6 +6,7 @@ import '../entities/auth.dart';
 abstract class AuthRepository {
   Future<User> login(String email, String password);
   Future<User> signUp(String name, String email, String password, DateTime dob);
-  Future signOut();
-  Future signInWithGoogle();
+  Future<void> signOut();
+  Future<User> signInWithGoogle();
+  Future<String> refreshToken(String refreshToken);
 }
