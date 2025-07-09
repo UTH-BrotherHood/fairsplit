@@ -1,10 +1,17 @@
 import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.dart';
+import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
+import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
+import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
 import 'package:fairsplit/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final pages = [const Center(child: Text('Settings Placeholder'))];
+final pages = [
+  const HomeScreen(),
+  const AnalyticsScreen(),
+  const ExpensesScreen(),
+];
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -58,84 +65,133 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPage = ref.watch(selectedPageProvider);
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       body: pages[selectedPage],
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.zero,
-        child: PhysicalModel(
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
           color: Colors.white,
-          elevation: 8,
-          borderRadius: BorderRadius.circular(40),
-          shadowColor: Colors.black,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              removeBottom: true,
-              child: BottomAppBar(
-                shape: const CircularNotchedRectangle(),
-                notchMargin: 2.0,
-                color: Colors.white,
-                child: SizedBox(
-                  height: 60,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(
-                          Icons.home,
-                          size: 22,
-                          color: selectedPage == 0 ? Colors.blue : Colors.grey,
-                        ),
-                        onPressed: () =>
-                            ref.read(selectedPageProvider.notifier).state = 0,
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.show_chart,
-                          size: 22,
-                          color: selectedPage == 1 ? Colors.blue : Colors.grey,
-                        ),
-                        onPressed: () =>
-                            ref.read(selectedPageProvider.notifier).state = 1,
-                      ),
-                      const SizedBox(width: 40),
-                      IconButton(
-                        icon: Icon(
-                          Icons.description,
-                          size: 22,
-                          color: selectedPage == 2 ? Colors.blue : Colors.grey,
-                        ),
-                        onPressed: () =>
-                            ref.read(selectedPageProvider.notifier).state = 2,
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.settings,
-                          size: 22,
-                          color: selectedPage == 3 ? Colors.blue : Colors.grey,
-                        ),
-                        onPressed: () => _showSettingsMenu(context, ref),
-                      ),
-                    ],
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BottomAppBar(
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 8.0,
+            color: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              height: 70,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  _buildNavItem(
+                    icon: Icons.home_rounded,
+                    label: 'Home',
+                    isSelected: selectedPage == 0,
+                    onTap: () =>
+                        ref.read(selectedPageProvider.notifier).state = 0,
                   ),
-                ),
+                  _buildNavItem(
+                    icon: Icons.analytics_rounded,
+                    label: 'Analytics',
+                    isSelected: selectedPage == 1,
+                    onTap: () =>
+                        ref.read(selectedPageProvider.notifier).state = 1,
+                  ),
+                  const SizedBox(width: 60), // Space for FAB
+                  _buildNavItem(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Expenses',
+                    isSelected: selectedPage == 2,
+                    onTap: () =>
+                        ref.read(selectedPageProvider.notifier).state = 2,
+                  ),
+                  _buildNavItem(
+                    icon: Icons.person_rounded,
+                    label: 'Profile',
+                    isSelected: selectedPage == 3,
+                    onTap: () => _showSettingsMenu(context, ref),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add Task',
-        heroTag: 'add-task',
-        shape: const CircleBorder(),
-        elevation: 4.0,
-        onPressed: () => context.push('/add-task'),
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, size: 24),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF87CEEB), Color(0xFF5F9FBF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF87CEEB).withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          tooltip: 'Add Expense',
+          heroTag: 'add-expense',
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          onPressed: () => context.push('/add-expense'),
+          child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFF87CEEB).withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 24,
+              color: isSelected ? const Color(0xFF87CEEB) : Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isSelected ? const Color(0xFF87CEEB) : Colors.grey[400],
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
