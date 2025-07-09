@@ -5,7 +5,14 @@ import '../entities/auth.dart';
 
 abstract class AuthRepository {
   Future<User> login(String email, String password);
-  Future<User> signUp(String name, String email, String password, DateTime dob);
+  Future<User> signUp({
+    required String email,
+    required String username,
+    required String password,
+    required String confirmPassword,
+    required DateTime dateOfBirth,
+    String verificationType = 'email',
+  });
   Future<void> signOut();
   Future<User> signInWithGoogle();
   Future<String> refreshToken(String refreshToken);
