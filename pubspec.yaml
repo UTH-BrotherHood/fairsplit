@@ -47,6 +47,7 @@ dependencies:
   http: ^1.4.0
   fl_chart: ^1.0.0
   jwt_decoder: ^2.0.1
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
