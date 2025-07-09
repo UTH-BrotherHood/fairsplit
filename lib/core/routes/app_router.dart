@@ -22,11 +22,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const HomePage()),
-      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/', builder: (context, state) => HomePage()),
+      GoRoute(path: '/login', builder: (context, state) => LoginPage()),
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfilePageWrapper(),
+        builder: (context, state) => ProfilePageWrapper(),
       ),
       GoRoute(path: '/settings', builder: (context, state) => SettingsPage()),
     ],
