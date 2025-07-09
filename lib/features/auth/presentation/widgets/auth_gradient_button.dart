@@ -5,11 +5,14 @@ class AuthGradientButton extends StatelessWidget {
   final Function()? onPressed;
   final String text;
   final Gradient? gradient;
+  final bool isLoading;
+
   const AuthGradientButton({
     super.key,
     this.onPressed,
     required this.text,
     this.gradient,
+    this.isLoading = false,
   });
 
   @override
@@ -29,8 +32,17 @@ class AuthGradientButton extends StatelessWidget {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
-        onPressed: onPressed,
-        child: Text(text, style: TextStyle(color: Colors.white, fontSize: 18)),
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(text, style: TextStyle(color: Colors.white, fontSize: 18)),
       ),
     );
   }
