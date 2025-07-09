@@ -1,4 +1,4 @@
-import 'package:fairsplit/core/theme/theme.dart';
+// import 'package:fairsplit/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,7 +26,7 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       title: 'FairSplit',
       routerConfig: router,
-      theme: AppTheme.darkThemeMode,
+      // theme: AppTheme.darkThemeMode,
     );
   }
 }
