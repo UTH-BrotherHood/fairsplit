@@ -10,6 +10,9 @@ class GroupModel {
   final DateTime updatedAt;
   final bool isArchived;
   final GroupSettingsModel settings;
+  final List<GroupBillModel> bills;
+  final int? pendingBillCount;
+  final List<GroupShoppingListModel> shoppingLists;
 
   GroupModel({
     required this.id,
@@ -21,6 +24,9 @@ class GroupModel {
     required this.updatedAt,
     required this.isArchived,
     required this.settings,
+    required this.bills,
+    this.pendingBillCount,
+    required this.shoppingLists,
   });
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +44,17 @@ class GroupModel {
       updatedAt: DateTime.parse(json['updatedAt']),
       isArchived: json['isArchived'] ?? false,
       settings: GroupSettingsModel.fromJson(json['settings'] ?? {}),
+      bills:
+          (json['bills'] as List<dynamic>?)
+              ?.map((bill) => GroupBillModel.fromJson(bill))
+              .toList() ??
+          [],
+      pendingBillCount: json['pendingBillCount'],
+      shoppingLists:
+          (json['shoppingLists'] as List<dynamic>?)
+              ?.map((list) => GroupShoppingListModel.fromJson(list))
+              .toList() ??
+          [],
     );
   }
 
@@ -51,6 +68,8 @@ class GroupModel {
     updatedAt: updatedAt,
     isArchived: isArchived,
     settings: settings.toEntity(),
+    bills: bills.map((bill) => bill.toEntity()).toList(),
+    shoppingLists: shoppingLists.map((list) => list.toEntity()).toList(),
   );
 }
 
@@ -59,6 +78,7 @@ class GroupMemberModel {
   final String role;
   final DateTime joinedAt;
   final String? nickname;
+  final DateTime? updatedAt;
   final GroupUserModel user;
 
   GroupMemberModel({
@@ -66,6 +86,7 @@ class GroupMemberModel {
     required this.role,
     required this.joinedAt,
     this.nickname,
+    this.updatedAt,
     required this.user,
   });
 
@@ -75,6 +96,9 @@ class GroupMemberModel {
       role: json['role'] ?? '',
       joinedAt: DateTime.parse(json['joinedAt']),
       nickname: json['nickname'],
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
       user: GroupUserModel.fromJson(json['user'] ?? {}),
     );
   }
@@ -84,6 +108,7 @@ class GroupMemberModel {
     role: role,
     joinedAt: joinedAt,
     nickname: nickname,
+    updatedAt: updatedAt,
     user: user.toEntity(),
   );
 }
@@ -95,6 +120,7 @@ class GroupUserModel {
   final String phone;
   final String? avatarUrl;
   final String verify;
+  final List<String> blockedUsers;
   final DateTime? lastLoginTime;
 
   GroupUserModel({
@@ -104,6 +130,7 @@ class GroupUserModel {
     required this.phone,
     this.avatarUrl,
     required this.verify,
+    required this.blockedUsers,
     this.lastLoginTime,
   });
 
@@ -115,6 +142,7 @@ class GroupUserModel {
       phone: json['phone'] ?? '',
       avatarUrl: json['avatarUrl'],
       verify: json['verify'] ?? '',
+      blockedUsers: List<String>.from(json['blockedUsers'] ?? []),
       lastLoginTime: json['lastLoginTime'] != null
           ? DateTime.parse(json['lastLoginTime'])
           : null,
@@ -128,6 +156,7 @@ class GroupUserModel {
     phone: phone,
     avatarUrl: avatarUrl,
     verify: verify,
+    blockedUsers: blockedUsers,
     lastLoginTime: lastLoginTime,
   );
 }
@@ -228,4 +257,269 @@ class GroupsResponseModel {
     items: items.map((item) => item.toEntity()).toList(),
     pagination: pagination.toEntity(),
   );
+}
+
+class GroupBillModel {
+  final String id;
+  final String groupId;
+  final String title;
+  final String description;
+  final double amount;
+  final String currency;
+  final DateTime date;
+  final String category;
+  final String splitMethod;
+  final String paidBy;
+  final List<BillParticipantModel> participants;
+  final String status;
+  final List<BillPaymentModel> payments;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  GroupBillModel({
+    required this.id,
+    required this.groupId,
+    required this.title,
+    required this.description,
+    required this.amount,
+    required this.currency,
+    required this.date,
+    required this.category,
+    required this.splitMethod,
+    required this.paidBy,
+    required this.participants,
+    required this.status,
+    required this.payments,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory GroupBillModel.fromJson(Map<String, dynamic> json) {
+    return GroupBillModel(
+      id: json['_id'] ?? '',
+      groupId: json['groupId'] ?? '',
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      amount: (json['amount'] ?? 0).toDouble(),
+      currency: json['currency'] ?? 'VND',
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      category: json['category'] ?? '',
+      splitMethod: json['splitMethod'] ?? 'equal',
+      paidBy: json['paidBy'] ?? '',
+      participants:
+          (json['participants'] as List<dynamic>?)
+              ?.map((p) => BillParticipantModel.fromJson(p))
+              .toList() ??
+          [],
+      status: json['status'] ?? 'pending',
+      payments:
+          (json['payments'] as List<dynamic>?)
+              ?.map((p) => BillPaymentModel.fromJson(p))
+              .toList() ??
+          [],
+      createdBy: json['createdBy'] ?? '',
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+
+  GroupBill toEntity() => GroupBill(
+    id: id,
+    groupId: groupId,
+    name: title,
+    description: description,
+    totalAmount: amount,
+    currency: currency,
+    status: status,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+}
+
+class BillParticipantModel {
+  final String userId;
+  final double share;
+  final double amountOwed;
+
+  BillParticipantModel({
+    required this.userId,
+    required this.share,
+    required this.amountOwed,
+  });
+
+  factory BillParticipantModel.fromJson(Map<String, dynamic> json) {
+    return BillParticipantModel(
+      userId: json['userId'] ?? '',
+      share: (json['share'] ?? 0).toDouble(),
+      amountOwed: (json['amountOwed'] ?? 0).toDouble(),
+    );
+  }
+}
+
+class BillPaymentModel {
+  final String id;
+  final double amount;
+  final String paidBy;
+  final String paidTo;
+  final DateTime date;
+  final String method;
+  final String notes;
+  final String createdBy;
+  final DateTime createdAt;
+
+  BillPaymentModel({
+    required this.id,
+    required this.amount,
+    required this.paidBy,
+    required this.paidTo,
+    required this.date,
+    required this.method,
+    required this.notes,
+    required this.createdBy,
+    required this.createdAt,
+  });
+
+  factory BillPaymentModel.fromJson(Map<String, dynamic> json) {
+    return BillPaymentModel(
+      id: json['_id'] ?? '',
+      amount: (json['amount'] ?? 0).toDouble(),
+      paidBy: json['paidBy'] ?? '',
+      paidTo: json['paidTo'] ?? '',
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      method: json['method'] ?? '',
+      notes: json['notes'] ?? '',
+      createdBy: json['createdBy'] ?? '',
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+}
+
+class GroupShoppingListModel {
+  final String id;
+  final String groupId;
+  final String name;
+  final String description;
+  final List<String> tags;
+  final DateTime? dueDate;
+  final String status;
+  final List<GroupShoppingItemModel> items;
+  final double totalEstimatedPrice;
+  final double totalActualPrice;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? completedAt;
+
+  GroupShoppingListModel({
+    required this.id,
+    required this.groupId,
+    required this.name,
+    required this.description,
+    required this.tags,
+    this.dueDate,
+    required this.status,
+    required this.items,
+    required this.totalEstimatedPrice,
+    required this.totalActualPrice,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+    this.completedAt,
+  });
+
+  factory GroupShoppingListModel.fromJson(Map<String, dynamic> json) {
+    return GroupShoppingListModel(
+      id: json['_id'] ?? '',
+      groupId: json['groupId'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      tags: List<String>.from(json['tags'] ?? []),
+      dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
+      status: json['status'] ?? 'active',
+      items:
+          (json['items'] as List<dynamic>?)
+              ?.map((item) => GroupShoppingItemModel.fromJson(item))
+              .toList() ??
+          [],
+      totalEstimatedPrice: (json['totalEstimatedPrice'] ?? 0).toDouble(),
+      totalActualPrice: (json['totalActualPrice'] ?? 0).toDouble(),
+      createdBy: json['createdBy'] ?? '',
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
+    );
+  }
+
+  GroupShoppingList toEntity() => GroupShoppingList(
+    id: id,
+    groupId: groupId,
+    name: name,
+    description: description,
+    tags: tags,
+    dueDate: dueDate,
+    status: status,
+    totalEstimatedPrice: totalEstimatedPrice,
+    totalActualPrice: totalActualPrice,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+}
+
+class GroupShoppingItemModel {
+  final String id;
+  final String name;
+  final int quantity;
+  final String? unit;
+  final double? estimatedPrice;
+  final String? note;
+  final String? category;
+  final bool isPurchased;
+  final DateTime? purchasedAt;
+  final String? purchasedBy;
+
+  GroupShoppingItemModel({
+    required this.id,
+    required this.name,
+    required this.quantity,
+    this.unit,
+    this.estimatedPrice,
+    this.note,
+    this.category,
+    required this.isPurchased,
+    this.purchasedAt,
+    this.purchasedBy,
+  });
+
+  factory GroupShoppingItemModel.fromJson(Map<String, dynamic> json) {
+    return GroupShoppingItemModel(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      unit: json['unit'],
+      estimatedPrice: json['estimatedPrice']?.toDouble(),
+      note: json['note'],
+      category: json['category'],
+      isPurchased: json['isPurchased'] ?? false,
+      purchasedAt: json['purchasedAt'] != null
+          ? DateTime.parse(json['purchasedAt'])
+          : null,
+      purchasedBy: json['purchasedBy'],
+    );
+  }
 }

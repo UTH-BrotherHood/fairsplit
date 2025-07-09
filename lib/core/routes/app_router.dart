@@ -4,6 +4,8 @@ import 'package:fairsplit/features/expenses/presentation/pages/add_expense_page.
 import 'package:fairsplit/features/home/presentation/pages/home_page.dart';
 import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
 import 'package:fairsplit/features/setting/presentation/pages/settings_page.dart';
+import 'package:fairsplit/features/shopping/presentation/pages/group_detail_page.dart';
+import 'package:fairsplit/features/shopping/presentation/pages/shopping_list_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +35,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/add-expense',
         builder: (context, state) => const AddExpensePage(),
+      ),
+      GoRoute(
+        path: '/group/:groupId',
+        builder: (context, state) {
+          final groupId = state.pathParameters['groupId']!;
+          return GroupDetailPage(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/shopping-list/:listId',
+        builder: (context, state) {
+          final listId = state.pathParameters['listId']!;
+          return ShoppingListDetailPage(listId: listId);
+        },
       ),
     ],
   );

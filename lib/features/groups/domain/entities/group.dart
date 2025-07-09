@@ -8,6 +8,8 @@ class Group {
   final DateTime updatedAt;
   final bool isArchived;
   final GroupSettings settings;
+  final List<GroupBill> bills;
+  final List<GroupShoppingList> shoppingLists;
 
   Group({
     required this.id,
@@ -19,6 +21,8 @@ class Group {
     required this.updatedAt,
     required this.isArchived,
     required this.settings,
+    required this.bills,
+    required this.shoppingLists,
   });
 }
 
@@ -27,6 +31,7 @@ class GroupMember {
   final String role;
   final DateTime joinedAt;
   final String? nickname;
+  final DateTime? updatedAt;
   final GroupUser user;
 
   GroupMember({
@@ -34,6 +39,7 @@ class GroupMember {
     required this.role,
     required this.joinedAt,
     this.nickname,
+    this.updatedAt,
     required this.user,
   });
 }
@@ -45,6 +51,7 @@ class GroupUser {
   final String phone;
   final String? avatarUrl;
   final String verify;
+  final List<String> blockedUsers;
   final DateTime? lastLoginTime;
 
   GroupUser({
@@ -54,6 +61,7 @@ class GroupUser {
     required this.phone,
     this.avatarUrl,
     required this.verify,
+    required this.blockedUsers,
     this.lastLoginTime,
   });
 }
@@ -99,5 +107,61 @@ class GroupsResponse {
     required this.message,
     required this.items,
     required this.pagination,
+  });
+}
+
+class GroupBill {
+  final String id;
+  final String groupId;
+  final String name;
+  final String description;
+  final double totalAmount;
+  final String currency;
+  final String status;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  GroupBill({
+    required this.id,
+    required this.groupId,
+    required this.name,
+    required this.description,
+    required this.totalAmount,
+    required this.currency,
+    required this.status,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
+class GroupShoppingList {
+  final String id;
+  final String groupId;
+  final String name;
+  final String description;
+  final List<String> tags;
+  final DateTime? dueDate;
+  final String status;
+  final double totalEstimatedPrice;
+  final double totalActualPrice;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  GroupShoppingList({
+    required this.id,
+    required this.groupId,
+    required this.name,
+    required this.description,
+    required this.tags,
+    this.dueDate,
+    required this.status,
+    required this.totalEstimatedPrice,
+    required this.totalActualPrice,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
   });
 }

@@ -20,7 +20,7 @@ class AddExpensePage extends StatelessWidget {
             const Text(
               'Tạo khoản chi tiêu mới',
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -55,10 +55,7 @@ class AddExpensePage extends StatelessWidget {
                     const SizedBox(height: 8),
                     const Text(
                       'Sẽ sớm có tính năng thêm chi tiêu',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
