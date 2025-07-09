@@ -17,16 +17,24 @@ class SignUpPage extends ConsumerStatefulWidget {
 
 class _SignUpPageState extends ConsumerState<SignUpPage> {
   List<TextEditingController> controllers = List.generate(
-    3,
+    5,
     (index) => TextEditingController(),
   );
 
-  final List<String> hintTexts = ["Name", "Email", "Password"];
+  final List<String> hintTexts = [
+    "Username",
+    "Email",
+    "Password",
+    "Confirm Password",
+    "Date of Birth",
+  ];
 
   final List<IconData> fieldIcons = [
     Icons.person_outline,
     Icons.email_outlined,
     Icons.lock_outline,
+    Icons.lock_outline,
+    Icons.calendar_today,
   ];
 
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
@@ -44,16 +52,29 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   signup() async {
     setState(() => _loading = true);
     try {
+      // Parse date of birth
+      DateTime dateOfBirth;
+      try {
+        dateOfBirth = DateTime.parse(controllers[4].text);
+      } catch (e) {
+        throw Exception('Invalid date format. Please use YYYY-MM-DD');
+      }
+
       await ref
           .read(authViewModelProvider.notifier)
           .signUp(
-            name: controllers[0].text,
+            username: controllers[0].text,
             email: controllers[1].text,
             password: controllers[2].text,
-            dob: DateTime.now(),
+            confirmPassword: controllers[3].text,
+            dateOfBirth: dateOfBirth,
           );
       if (!mounted) return;
-      showSnackBar(content: 'Account created successfully', context: context);
+      showSnackBar(
+        content:
+            'Account created successfully! Please check your email to verify your account.',
+        context: context,
+      );
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -227,7 +248,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   Widget _buildSignupFields() {
     return Column(
       children: List.generate(controllers.length, (index) {
-        final bool isPasswordField = hintTexts[index] == "Password";
+        final bool isPasswordField =
+            hintTexts[index] == "Password" ||
+            hintTexts[index] == "Confirm Password";
+        final bool isDateField = hintTexts[index] == "Date of Birth";
 
         return Container(
           margin: EdgeInsets.only(bottom: 16),
@@ -238,13 +262,49 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           child: CustomTextField(
             hintText: hintTexts[index],
             controller: controllers[index],
-            validator: (value) => Validators.validateEmail(value),
-            prefixIcon: Icons.lock_outline,
+            validator: (value) {
+              if (hintTexts[index] == "Email") {
+                return Validators.validateEmail(value);
+              } else if (hintTexts[index] == "Date of Birth") {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter date of birth';
+                }
+                try {
+                  DateTime.parse(value);
+                  return null;
+                } catch (e) {
+                  return 'Please use format YYYY-MM-DD';
+                }
+              } else if (hintTexts[index] == "Confirm Password") {
+                if (value != controllers[2].text) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              }
+              return null;
+            },
+            prefixIcon: fieldIcons[index],
             obscureText: isPasswordField,
+            onTap: isDateField ? () => _selectDate(context) : null,
+            readOnly: isDateField,
           ),
         );
       }),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(
+        Duration(days: 365 * 18),
+      ), // 18 years ago
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      controllers[4].text = picked.toIso8601String().split('T')[0];
+    }
   }
 
   Widget _buildSignupButton() {
