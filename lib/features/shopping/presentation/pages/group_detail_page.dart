@@ -5,6 +5,8 @@ import 'package:fairsplit/features/groups/presentation/viewmodels/group_view_mod
 import 'package:fairsplit/features/shopping/domain/entities/shopping_list.dart';
 import 'package:fairsplit/features/shopping/presentation/viewmodels/shopping_list_view_model.dart';
 import 'package:fairsplit/features/shopping/presentation/pages/shopping_list_detail_page.dart';
+import 'package:fairsplit/features/expenses/presentation/pages/bill_detail_page.dart';
+import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
 
 class GroupDetailPage extends ConsumerStatefulWidget {
   final String groupId;
@@ -458,14 +460,13 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage>
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _openBillDetail(GroupBill bill) {
-    // TODO: Navigate to bill detail page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mở chi tiết hóa đơn: ${bill.name}'),
-        backgroundColor: const Color(0xFF87CEEB),
-      ),
+  void _openBillDetail(GroupBill bill) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => BillDetailPage(billId: bill.id)),
     );
+    // Refresh group data when coming back from bill detail page
+    ref.read(groupViewModelProvider.notifier).refreshGroups();
   }
 
   void _showGroupMenu(BuildContext context) {
@@ -518,12 +519,227 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage>
   }
 
   void _showAddBillDialog(BuildContext context) {
-    // TODO: Show add bill dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tính năng tạo hóa đơn sẽ được cập nhật sau'),
-        backgroundColor: Color(0xFF87CEEB),
-      ),
+    final titleController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final amountController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    String selectedCategory = 'Ăn uống';
+    String selectedSplitMethod = 'equal';
+    DateTime selectedDate = DateTime.now();
+
+    // Get current group data
+    final groupsState = ref.read(groupViewModelProvider);
+    Group? currentGroup;
+    groupsState.whenData((groupsResponse) {
+      currentGroup = groupsResponse.items
+          .where((g) => g.id == widget.groupId)
+          .firstOrNull;
+    });
+
+    if (currentGroup == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể tải thông tin nhóm'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Tạo hóa đơn mới'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Tiêu đề hóa đơn *',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) => value?.isEmpty == true
+                              ? 'Vui lòng nhập tiêu đề'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Mô tả',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: amountController,
+                          decoration: const InputDecoration(
+                            labelText: 'Số tiền *',
+                            border: OutlineInputBorder(),
+                            suffixText: 'VND',
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value?.isEmpty == true)
+                              return 'Vui lòng nhập số tiền';
+                            if (double.tryParse(value!) == null)
+                              return 'Số tiền không hợp lệ';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Danh mục',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Ăn uống',
+                              child: Text('Ăn uống'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Đi lại',
+                              child: Text('Đi lại'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Mua sắm',
+                              child: Text('Mua sắm'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Giải trí',
+                              child: Text('Giải trí'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Tiện ích',
+                              child: Text('Tiện ích'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Khác',
+                              child: Text('Khác'),
+                            ),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => selectedCategory = value!),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedSplitMethod,
+                          decoration: const InputDecoration(
+                            labelText: 'Phương thức chia',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'equal',
+                              child: Text('Chia đều'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'percentage',
+                              child: Text('Theo phần trăm'),
+                            ),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => selectedSplitMethod = value!),
+                        ),
+                        const SizedBox(height: 16),
+                        InkWell(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(
+                                const Duration(days: 365),
+                              ),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                            );
+                            if (date != null) {
+                              setState(() => selectedDate = date);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Ngày',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.calendar_today),
+                            ),
+                            child: Text(
+                              '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final request = CreateBillRequest(
+                        groupId: widget.groupId,
+                        title: titleController.text,
+                        description: descriptionController.text,
+                        amount: double.parse(amountController.text),
+                        currency: 'VND',
+                        date: selectedDate,
+                        category: selectedCategory,
+                        splitMethod: selectedSplitMethod,
+                        paidBy: currentGroup!
+                            .members
+                            .first
+                            .userId, // TODO: Let user select who paid
+                        participants: currentGroup!.members
+                            .map(
+                              (member) =>
+                                  CreateBillParticipant(userId: member.userId),
+                            )
+                            .toList(),
+                      );
+
+                      // For now, show success message. You can integrate with bill creation API later
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Hóa đơn sẽ được tạo sau khi tích hợp API',
+                          ),
+                          backgroundColor: Color(0xFF87CEEB),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF87CEEB),
+                  ),
+                  child: const Text(
+                    'Tạo hóa đơn',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

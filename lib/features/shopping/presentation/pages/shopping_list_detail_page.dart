@@ -733,125 +733,255 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Row(
-        children: [
-          const Text('Thêm mặt hàng'),
-          const Spacer(),
-          Text(
-            '${_items.length} item${_items.length > 1 ? 's' : ''}',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-        ],
-      ),
-      content: SizedBox(
+    final screenHeight = MediaQuery.of(context).size.height;
+    final dialogHeight = screenHeight * 0.7; // 70% của màn hình
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
         width: double.maxFinite,
-        height: 400,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _items.length,
-                  itemBuilder: (context, index) {
-                    return _buildItemInput(index);
-                  },
+        height: dialogHeight,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // Header
+            Row(
+              children: [
+                const Text(
+                  'Thêm mặt hàng',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _addNewItem,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Thêm mặt hàng'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF87CEEB),
-                        side: const BorderSide(color: Color(0xFF87CEEB)),
-                      ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF87CEEB).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_items.length} mặt hàng',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF87CEEB),
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Form content
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Quick add buttons
+                    _buildQuickAddButtons(),
+                    const SizedBox(height: 16),
+
+                    // Items list
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _items.length,
+                        itemBuilder: (context, index) {
+                          return _buildItemInput(index);
+                        },
+                      ),
+                    ),
+
+                    // Add button
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _addNewItem,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Thêm mặt hàng khác'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF87CEEB),
+                          side: const BorderSide(color: Color(0xFF87CEEB)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+
+            // Actions
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Hủy'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _submitItems,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF87CEEB),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text(
+                      'Thêm tất cả',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Hủy'),
-        ),
-        ElevatedButton(
-          onPressed: _submitItems,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF87CEEB),
-          ),
-          child: const Text(
-            'Thêm tất cả',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildItemInput(int index) {
     final item = _items[index];
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header với số thứ tự và nút xóa
             Row(
               children: [
-                Text(
-                  'Mặt hàng ${index + 1}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF87CEEB),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Mặt hàng ${index + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
                 ),
                 const Spacer(),
                 if (_items.length > 1)
-                  IconButton(
-                    onPressed: () => _removeItem(index),
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    iconSize: 20,
+                  InkWell(
+                    onTap: () => _removeItem(index),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: const Icon(
+                        Icons.remove_circle,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 12),
+
+            // Tên mặt hàng
             TextFormField(
               controller: item.nameController,
-              decoration: const InputDecoration(
-                hintText: 'Tên mặt hàng *',
-                prefixIcon: Icon(Icons.shopping_cart),
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+              decoration: InputDecoration(
+                labelText: 'Tên mặt hàng *',
+                hintText: 'Ví dụ: Sữa tươi, Bánh mì...',
+                prefixIcon: const Icon(
+                  Icons.shopping_cart,
+                  color: Color(0xFF87CEEB),
+                  size: 20,
                 ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF87CEEB),
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                isDense: true,
               ),
-              validator: (value) => value?.isEmpty == true ? 'Bắt buộc' : null,
+              style: const TextStyle(fontSize: 14),
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Vui lòng nhập tên mặt hàng' : null,
             ),
             const SizedBox(height: 12),
+
+            // Số lượng và đơn vị
             Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: TextFormField(
                     controller: item.quantityController,
-                    decoration: const InputDecoration(
-                      hintText: 'Số lượng *',
-                      prefixIcon: Icon(Icons.format_list_numbered),
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                    decoration: InputDecoration(
+                      labelText: 'Số lượng *',
+                      hintText: '1',
+                      prefixIcon: const Icon(
+                        Icons.format_list_numbered,
+                        color: Color(0xFF87CEEB),
+                        size: 20,
                       ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF87CEEB),
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      isDense: true,
                     ),
+                    style: const TextStyle(fontSize: 14),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value?.isEmpty == true) return 'Bắt buộc';
@@ -863,33 +993,69 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
+                  flex: 3,
                   child: TextFormField(
                     controller: item.unitController,
-                    decoration: const InputDecoration(
-                      hintText: 'Đơn vị',
-                      prefixIcon: Icon(Icons.straighten),
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                    decoration: InputDecoration(
+                      labelText: 'Đơn vị',
+                      hintText: 'hộp, kg, chai...',
+                      prefixIcon: const Icon(
+                        Icons.straighten,
+                        color: Color(0xFF87CEEB),
+                        size: 20,
                       ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF87CEEB),
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      isDense: true,
                     ),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
+
+            // Giá dự kiến
             TextFormField(
               controller: item.priceController,
-              decoration: const InputDecoration(
-                hintText: 'Giá dự kiến (VND)',
-                prefixIcon: Icon(Icons.monetization_on),
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+              decoration: InputDecoration(
+                labelText: 'Giá dự kiến (VND)',
+                hintText: '15000',
+                prefixIcon: const Icon(
+                  Icons.monetization_on,
+                  color: Color(0xFF87CEEB),
+                  size: 20,
                 ),
+                suffixText: 'VND',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF87CEEB),
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                isDense: true,
               ),
+              style: const TextStyle(fontSize: 14),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value?.isNotEmpty == true &&
@@ -924,10 +1090,10 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
           .where((item) => item.nameController.text.isNotEmpty)
           .map(
             (item) => CreateShoppingItemRequest(
-              name: item.nameController.text,
+              name: item.nameController.text.trim(),
               quantity: int.parse(item.quantityController.text),
-              unit: item.unitController.text.isNotEmpty
-                  ? item.unitController.text
+              unit: item.unitController.text.trim().isNotEmpty
+                  ? item.unitController.text.trim()
                   : null,
               estimatedPrice: item.priceController.text.isNotEmpty
                   ? double.parse(item.priceController.text)
@@ -936,9 +1102,101 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
           )
           .toList();
 
+      if (requests.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vui lòng nhập ít nhất một mặt hàng'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
       widget.onItemsAdded(requests);
       Navigator.pop(context);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã thêm ${requests.length} mặt hàng vào danh sách'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
+  }
+
+  void _addPresetItem(String name, int quantity, String unit, double? price) {
+    setState(() {
+      final newItem = _ItemInput();
+      newItem.nameController.text = name;
+      newItem.quantityController.text = quantity.toString();
+      newItem.unitController.text = unit;
+      if (price != null) {
+        newItem.priceController.text = price.toString();
+      }
+      _items.add(newItem);
+    });
+  }
+
+  Widget _buildQuickAddButtons() {
+    final presetItems = [
+      {'name': 'Sữa tươi', 'quantity': 1, 'unit': 'hộp', 'price': 15000.0},
+      {'name': 'Bánh mì', 'quantity': 2, 'unit': 'ổ', 'price': 8000.0},
+      {'name': 'Trứng gà', 'quantity': 10, 'unit': 'quả', 'price': 3000.0},
+      {'name': 'Rau xanh', 'quantity': 1, 'unit': 'kg', 'price': 25000.0},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.flash_on, size: 16, color: Colors.orange[600]),
+              const SizedBox(width: 4),
+              const Text(
+                'Thêm nhanh:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: presetItems.map((item) {
+              return ActionChip(
+                label: Text(
+                  item['name'] as String,
+                  style: const TextStyle(fontSize: 11),
+                ),
+                backgroundColor: const Color(0xFF87CEEB).withOpacity(0.1),
+                side: const BorderSide(color: Color(0xFF87CEEB)),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                onPressed: () => _addPresetItem(
+                  item['name'] as String,
+                  item['quantity'] as int,
+                  item['unit'] as String,
+                  item['price'] as double?,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
