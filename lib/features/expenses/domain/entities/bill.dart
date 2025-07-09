@@ -78,22 +78,30 @@ class BillParticipant {
   final String userId;
   final double share;
   final double amountOwed;
+  final String? username;
+  final String? avatarUrl;
 
   BillParticipant({
     required this.userId,
     required this.share,
     required this.amountOwed,
+    this.username,
+    this.avatarUrl,
   });
 
   BillParticipant copyWith({
     String? userId,
     double? share,
     double? amountOwed,
+    String? username,
+    String? avatarUrl,
   }) {
     return BillParticipant(
       userId: userId ?? this.userId,
       share: share ?? this.share,
       amountOwed: amountOwed ?? this.amountOwed,
+      username: username ?? this.username,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 }

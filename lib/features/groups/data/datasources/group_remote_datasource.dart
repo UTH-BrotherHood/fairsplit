@@ -7,6 +7,7 @@ import 'dart:convert';
 
 abstract class GroupRemoteDataSource {
   Future<GroupsResponse> getMyGroups({int page = 1, int limit = 10});
+  Future<GroupResponseModel> createGroup(CreateGroupRequest request);
 }
 
 class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
@@ -35,6 +36,28 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       return groupsResponseModel.toEntity();
     } else {
       throw Exception('Failed to fetch groups: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<GroupResponseModel> createGroup(CreateGroupRequest request) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+    final requestModel = CreateGroupRequestModel.fromEntity(request);
+
+    final response = await client.post(
+      Uri.parse('${ApiConstants.baseUrl}/groups'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: jsonEncode(requestModel.toJson()),
+    );
+
+    if (response.statusCode == 201) {
+      final jsonMap = jsonDecode(response.body);
+      return GroupResponseModel.fromJson(jsonMap);
+    } else {
+      throw Exception('Failed to create group: ${response.statusCode}');
     }
   }
 }

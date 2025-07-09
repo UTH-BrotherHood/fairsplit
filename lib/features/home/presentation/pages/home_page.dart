@@ -2,6 +2,8 @@ import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
+import 'package:fairsplit/features/groups/presentation/viewmodels/group_view_model.dart';
+import 'package:fairsplit/features/expenses/presentation/pages/add_expense_page.dart';
 import 'package:fairsplit/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -148,7 +150,7 @@ class HomePage extends ConsumerWidget {
           heroTag: 'add-expense',
           elevation: 0,
           backgroundColor: Colors.transparent,
-          onPressed: () => context.push('/add-expense'),
+          onPressed: () => _showAddExpenseDialog(context),
           child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
         ),
       ),
@@ -192,6 +194,89 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddExpenseDialog(BuildContext context) {
+    showDialog(context: context, builder: (context) => _AddExpenseDialog());
+  }
+}
+
+class _AddExpenseDialog extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupsState = ref.watch(groupViewModelProvider);
+
+    return AlertDialog(
+      title: const Text('Thêm chi tiêu'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Chọn nhóm để thêm chi tiêu:'),
+          const SizedBox(height: 16),
+          groupsState.when(
+            data: (groupsResponse) {
+              if (groupsResponse.items.isEmpty) {
+                return Column(
+                  children: [
+                    const Text('Bạn chưa có nhóm nào.'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        context.push('/create-group');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF87CEEB),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Tạo nhóm mới'),
+                    ),
+                  ],
+                );
+              }
+
+              return SizedBox(
+                height: 200,
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: groupsResponse.items.length,
+                  itemBuilder: (context, index) {
+                    final group = groupsResponse.items[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFF87CEEB),
+                        child: Text(
+                          group.name.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Text(group.name),
+                      subtitle: Text(group.description),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AddExpensePage(group: group),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const CircularProgressIndicator(),
+            error: (error, stack) => Text('Lỗi: $error'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Hủy'),
+        ),
+      ],
     );
   }
 }

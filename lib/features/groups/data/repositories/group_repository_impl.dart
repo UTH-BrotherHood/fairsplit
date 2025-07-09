@@ -11,4 +11,10 @@ class GroupRepositoryImpl implements GroupRepository {
   Future<GroupsResponse> getMyGroups({int page = 1, int limit = 10}) async {
     return await remoteDataSource.getMyGroups(page: page, limit: limit);
   }
+
+  @override
+  Future<GroupResponse> createGroup(CreateGroupRequest request) async {
+    final response = await remoteDataSource.createGroup(request);
+    return response.toEntity();
+  }
 }

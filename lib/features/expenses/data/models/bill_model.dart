@@ -113,11 +113,15 @@ class BillParticipantModel {
   final String userId;
   final double share;
   final double amountOwed;
+  final String? username;
+  final String? avatarUrl;
 
   BillParticipantModel({
     required this.userId,
     required this.share,
     required this.amountOwed,
+    this.username,
+    this.avatarUrl,
   });
 
   factory BillParticipantModel.fromJson(Map<String, dynamic> json) {
@@ -125,11 +129,19 @@ class BillParticipantModel {
       userId: json['userId'] ?? '',
       share: (json['share'] ?? 0).toDouble(),
       amountOwed: (json['amountOwed'] ?? 0).toDouble(),
+      username: json['username'],
+      avatarUrl: json['avatarUrl'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId, 'share': share, 'amountOwed': amountOwed};
+    return {
+      'userId': userId,
+      'share': share,
+      'amountOwed': amountOwed,
+      if (username != null) 'username': username,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+    };
   }
 
   BillParticipant toEntity() {
@@ -137,6 +149,8 @@ class BillParticipantModel {
       userId: userId,
       share: share,
       amountOwed: amountOwed,
+      username: username,
+      avatarUrl: avatarUrl,
     );
   }
 }
@@ -242,7 +256,7 @@ class BillResponseModel {
   factory BillResponseModel.fromJson(Map<String, dynamic> json) {
     return BillResponseModel(
       message: json['message'] ?? '',
-      result: BillModel.fromJson(json['result']),
+      result: BillModel.fromJson(json['data'] ?? json['result']),
     );
   }
 
