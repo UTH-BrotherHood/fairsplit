@@ -2,22 +2,15 @@ import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.
 import 'package:fairsplit/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final pages = [
-  // const TaskListPage(),
-  // const CryptoPage(),
-  // const PermissionRequestPage(),
-  const Center(child: Text('Settings Placeholder')),
-];
+final pages = [const Center(child: Text('Settings Placeholder'))];
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   void _showSettingsMenu(BuildContext context, WidgetRef ref) {
-    final user = FirebaseAuth.instance.currentUser;
-
+    final user = ref.watch(authViewModelProvider);
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
