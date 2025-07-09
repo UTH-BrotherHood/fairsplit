@@ -267,14 +267,20 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
         children: [
           CircleAvatar(
             radius: 20,
+            backgroundImage: participant.avatarUrl != null
+                ? NetworkImage(participant.avatarUrl!)
+                : null,
             backgroundColor: const Color(0xFF87CEEB),
-            child: Text(
-              participant.userId.substring(0, 2).toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: participant.avatarUrl == null
+                ? Text(
+                    participant.username?.substring(0, 1).toUpperCase() ??
+                        participant.userId.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -282,7 +288,8 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'User ${participant.userId.substring(0, 8)}',
+                  participant.username ??
+                      'User ${participant.userId.substring(0, 8)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -544,7 +551,8 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
                       return DropdownMenuItem(
                         value: participant.userId,
                         child: Text(
-                          'User ${participant.userId.substring(0, 8)}',
+                          participant.username ??
+                              'User ${participant.userId.substring(0, 8)}',
                         ),
                       );
                     }).toList(),

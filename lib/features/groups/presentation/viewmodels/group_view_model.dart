@@ -35,6 +35,16 @@ class GroupViewModel extends StateNotifier<AsyncValue<GroupsResponse>> {
   Future<void> refreshGroups() async {
     await getMyGroups();
   }
+
+  Future<void> createGroup(CreateGroupRequest request) async {
+    try {
+      await repository.createGroup(request);
+      // Refresh the groups list after creating
+      await getMyGroups();
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
 }
 
 // ViewModel provider
