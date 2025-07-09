@@ -4,7 +4,6 @@ import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.
 import 'package:fairsplit/features/auth/presentation/views/login_page.dart';
 import 'package:fairsplit/features/auth/presentation/widgets/auth_gradient_button.dart';
 import 'package:fairsplit/shared/widgets/custom_text_field.dart';
-import 'package:fairsplit/shared/widgets/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +14,8 @@ class SignUpPage extends ConsumerStatefulWidget {
   ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends ConsumerState<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage>
+    with TickerProviderStateMixin {
   List<TextEditingController> controllers = List.generate(
     5,
     (index) => TextEditingController(),
@@ -38,11 +38,40 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   ];
 
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
-  bool _loading = false; // Thêm biến loading cục bộ
+  bool _loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
-    // ignore: avoid_function_literals_in_foreach_calls
+    _animationController.dispose();
     controllers.forEach((controller) {
       controller.dispose();
     });
@@ -75,13 +104,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             'Account created successfully! Please check your email to verify your account.',
         context: context,
       );
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+
       showSnackBar(
-        content: e.toString(),
+        content: errorMessage,
         context: context,
         backgroundColor: Colors.red,
       );
@@ -92,90 +126,82 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    // KHÔNG dùng isLoading, KHÔNG dùng .when
-    // final user = ref.watch(authViewModelProvider);
-
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: _loading
-          ? LoaderWidget()
-          : Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E1E2E), // Dark purple
-                    Color(0xFF0D0D14), // Near black
-                  ],
-                ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1E1E2E),
+              const Color(0xFF0D0D14),
+              const Color(0xFF1A1A2E),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Animated background elements
+            Positioned(
+              top: 80,
+              left: -40,
+              child: _buildFloatingCircle(
+                size: 100,
+                color: const Color(0xFFE83D7B).withOpacity(0.1),
+                animation: _fadeAnimation,
               ),
-              child: Stack(
-                children: [
-                  // Background music-themed decorations
-                  Positioned(
-                    top: 70,
-                    left: 30,
-                    child: _buildMusicNote(
-                      40,
-                      Color(0xFF6A3DE8).withValues(alpha: 0.3),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 100,
-                    right: 30,
-                    child: _buildMusicNote(
-                      50,
-                      Color(0xFFE83D7B).withValues(alpha: 0.3),
-                    ),
-                  ),
-                  Positioned(
-                    top: 200,
-                    right: 50,
-                    child: _buildEqualizerBars(
-                      Color(0xFF3D7BE8).withValues(alpha: 0.3),
-                    ),
-                  ),
+            ),
+            Positioned(
+              top: 180,
+              right: -20,
+              child: _buildFloatingCircle(
+                size: 70,
+                color: const Color(0xFF6A3DE8).withOpacity(0.1),
+                animation: _fadeAnimation,
+              ),
+            ),
+            Positioned(
+              bottom: 120,
+              left: 30,
+              child: _buildFloatingCircle(
+                size: 50,
+                color: const Color(0xFF3D7BE8).withOpacity(0.1),
+                animation: _fadeAnimation,
+              ),
+            ),
 
-                  // Main content
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: SingleChildScrollView(
-                        child: Form(
-                          key: _globalKey,
-                          child: Column(
-                            children: [
-                              SizedBox(height: 50),
-
-                              // Back button and title
-                              _buildHeader(context),
-                              SizedBox(height: 30),
-
-                              // Logo section
-                              _buildLogoSection(),
-                              SizedBox(height: 40),
-
-                              // Form fields
-                              _buildSignupFields(),
-                              SizedBox(height: 30),
-
-                              // Signup button
-                              _buildSignupButton(),
-                              SizedBox(height: 20),
-
-                              // Login option
-                              _buildLoginOption(context),
-                              SizedBox(height: 40),
-                            ],
-                          ),
-                        ),
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Form(
+                      key: _globalKey,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 40),
+                          _buildHeader(context),
+                          const SizedBox(height: 40),
+                          _buildLogoSection(),
+                          const SizedBox(height: 40),
+                          _buildSignupFields(),
+                          const SizedBox(height: 30),
+                          _buildSignupButton(),
+                          const SizedBox(height: 20),
+                          _buildLoginOption(context),
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -185,21 +211,30 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
             ),
-            child: Icon(Icons.arrow_back, color: Colors.white70),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
         ),
-        SizedBox(width: 16),
-        Text(
+        const SizedBox(width: 16),
+        const Text(
           'Create Account',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            letterSpacing: 0.5,
           ),
         ),
       ],
@@ -210,34 +245,39 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     return Column(
       children: [
         Container(
-          width: 70,
-          height: 70,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFE83D7B), // Pink
-                Color(0xFF6A3DE8), // Purple
-              ],
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE83D7B).withOpacity(0.3),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
           ),
-          child: Icon(Icons.music_note, color: Colors.white, size: 35),
+          child: const Icon(Icons.person_add, color: Colors.white, size: 45),
         ),
-        SizedBox(height: 16),
-        Text(
-          'Join Rhythm',
+        const SizedBox(height: 20),
+        const Text(
+          'Join FairSplit',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            letterSpacing: 1.2,
+            letterSpacing: 1.5,
           ),
         ),
+        const SizedBox(height: 8),
         Text(
-          'Discover your perfect sound',
+          'Start sharing expenses with friends',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white70,
+            color: Colors.white.withOpacity(0.7),
             letterSpacing: 0.5,
           ),
         ),
@@ -248,16 +288,16 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   Widget _buildSignupFields() {
     return Column(
       children: List.generate(controllers.length, (index) {
-        final bool isPasswordField =
-            hintTexts[index] == "Password" ||
-            hintTexts[index] == "Confirm Password";
-        final bool isDateField = hintTexts[index] == "Date of Birth";
+        final bool isPasswordField = index == 2;
+        final bool isConfirmPasswordField = index == 3;
+        final bool isDateField = index == 4;
 
         return Container(
-          margin: EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
           child: CustomTextField(
             hintText: hintTexts[index],
@@ -284,9 +324,34 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               return null;
             },
             prefixIcon: fieldIcons[index],
-            obscureText: isPasswordField,
+            obscureText: isPasswordField
+                ? _obscurePassword
+                : isConfirmPasswordField
+                ? _obscureConfirmPassword
+                : false,
             onTap: isDateField ? () => _selectDate(context) : null,
             readOnly: isDateField,
+            suffixIcon: isPasswordField || isConfirmPasswordField
+                ? IconButton(
+                    icon: Icon(
+                      (isPasswordField
+                              ? _obscurePassword
+                              : _obscureConfirmPassword)
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (isPasswordField) {
+                          _obscurePassword = !_obscurePassword;
+                        } else {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        }
+                      });
+                    },
+                  )
+                : null,
           ),
         );
       }),
@@ -297,7 +362,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().subtract(
-        Duration(days: 365 * 18),
+        const Duration(days: 365 * 18),
       ), // 18 years ago
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
@@ -310,7 +375,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   Widget _buildSignupButton() {
     return SizedBox(
       width: double.infinity,
-      height: 55,
+      height: 56,
       child: AuthGradientButton(
         onPressed: () {
           if (_globalKey.currentState!.validate()) {
@@ -318,11 +383,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           }
         },
         text: 'CREATE ACCOUNT',
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFFE83D7B), // Pink
-            Color(0xFF6A3DE8), // Purple
-          ],
+        isLoading: _loading,
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
         ),
       ),
     );
@@ -333,114 +396,49 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       onTap: () {
         Navigator.pop(context);
       },
-      child: RichText(
-        text: TextSpan(
-          style: TextStyle(fontSize: 15),
-          children: [
-            TextSpan(
-              text: 'Already have an account? ',
-              style: TextStyle(color: Colors.white70),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 15),
+              children: [
+                TextSpan(
+                  text: 'Already have an account? ',
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+                const TextSpan(
+                  text: 'Sign In',
+                  style: TextStyle(
+                    color: Color(0xFFE83D7B),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            TextSpan(
-              text: 'Sign In',
-              style: TextStyle(
-                color: Color(0xFFE83D7B),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMusicNote(double size, Color color) {
-    return Container(
-      width: size,
-      height: size * 1.5,
-      child: CustomPaint(painter: MusicNotePainter(color: color)),
+  Widget _buildFloatingCircle({
+    required double size,
+    required Color color,
+    required Animation<double> animation,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: animation.value,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          ),
+        );
+      },
     );
   }
-
-  Widget _buildEqualizerBars(Color color) {
-    return Container(
-      width: 60,
-      height: 60,
-      child: CustomPaint(painter: EqualizerPainter(color: color)),
-    );
-  }
-}
-
-// Custom painter for music note
-class MusicNotePainter extends CustomPainter {
-  final Color color;
-
-  MusicNotePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    // Draw note head
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(size.width * 0.7, size.height * 0.8),
-        width: size.width * 0.6,
-        height: size.width * 0.4,
-      ),
-      paint,
-    );
-
-    // Draw note stem
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.9,
-        size.height * 0.2,
-        size.width * 0.1,
-        size.height * 0.6,
-      ),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// Custom painter for equalizer bars
-class EqualizerPainter extends CustomPainter {
-  final Color color;
-
-  EqualizerPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final barWidth = size.width / 7;
-
-    // Draw equalizer bars with varying heights
-    final heights = [0.4, 0.7, 0.9, 0.5, 0.8, 0.3, 0.6];
-
-    for (int i = 0; i < heights.length; i++) {
-      final barHeight = size.height * heights[i];
-      final barX = i * barWidth;
-      final barY = size.height - barHeight;
-
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(barX, barY, barWidth * 0.7, barHeight),
-          Radius.circular(barWidth * 0.3),
-        ),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
