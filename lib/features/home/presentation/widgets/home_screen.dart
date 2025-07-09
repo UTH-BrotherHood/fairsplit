@@ -87,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Tìm kiếm nhóm',
+                hintText: 'Tìm kiếm nhóm 123 AAAAzaaaa',
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
