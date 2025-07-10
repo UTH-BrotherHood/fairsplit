@@ -46,7 +46,6 @@ class AuthRepositoryImpl implements AuthRepository {
       verificationType: verificationType,
     );
 
-    // Don't save tokens for registration since user needs to verify email first
     // await localDataSource.saveTokens(
     //   response.data.accessToken,
     //   response.data.refreshToken,
@@ -64,7 +63,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User> signInWithGoogle() async {
-    throw UnimplementedError();
+    final AuthResponseModel? response = await remoteDataSource
+        .signInWithGoogle();
+
+    if (response != null) {
+      await localDataSource.saveTokens(
+        response.data.accessToken,
+        response.data.refreshToken,
+      );
+      return response.data.user.toEntity();
+    } else {
+      throw Exception('Google sign-in failed');
+    }
   }
 
   @override
