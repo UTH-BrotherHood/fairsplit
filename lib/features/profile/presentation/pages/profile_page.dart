@@ -110,12 +110,12 @@ class ProfilePage extends ConsumerWidget {
                           : "-",
                     ),
                     _ProfileField(label: "Phone", value: user.phone ?? "-"),
-                    _ProfileField(
-                      label: "Groups",
-                      value: user.groups.isNotEmpty
-                          ? user.groups.join(", ")
-                          : "-",
-                    ),
+                    // _ProfileField(
+                    //   label: "Groups",
+                    //   value: user.groups.isNotEmpty
+                    //       ? user.groups.join(", ")
+                    //       : "-",
+                    // ),
                     _ProfileField(
                       label: "Account Created",
                       value: _formatDate(user.createdAt),
