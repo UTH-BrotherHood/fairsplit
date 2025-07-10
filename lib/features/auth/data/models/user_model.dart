@@ -6,7 +6,7 @@ class UserModel {
   final String? email;
   final String? phone;
   final List<String> groups;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
   final String? avatarUrl;
   final String verify;
   final String verificationType;
@@ -43,12 +43,14 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: (json['_id'] ?? '').toString(),
-      username: json['username'] ?? '',
+      username: json['username'],
       email: json['email'],
       phone: json['phone'],
       groups:
           (json['groups'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      dateOfBirth: DateTime.parse(json['dateOfBirth']),
+      dateOfBirth: json['dateOfBirth'] != null
+          ? DateTime.parse(json['dateOfBirth'])
+          : null,
       avatarUrl: json['avatarUrl'],
       verify: json['verify'] ?? 'unverified',
       verificationType: json['verificationType'] ?? 'email',
