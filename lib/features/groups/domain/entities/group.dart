@@ -165,3 +165,68 @@ class GroupShoppingList {
     required this.updatedAt,
   });
 }
+
+class GroupResponse {
+  final String message;
+  final Group data;
+
+  GroupResponse({required this.message, required this.data});
+}
+
+class CreateGroupRequest {
+  final String name;
+  final String description;
+  final List<GroupMemberInput> members;
+  final GroupSettingsInput? settings;
+
+  CreateGroupRequest({
+    required this.name,
+    required this.description,
+    required this.members,
+    this.settings,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'members': members.map((m) => m.toJson()).toList(),
+      if (settings != null) 'settings': settings!.toJson(),
+    };
+  }
+}
+
+class GroupMemberInput {
+  final String userId;
+  final String? nickname;
+
+  GroupMemberInput({required this.userId, this.nickname});
+
+  Map<String, dynamic> toJson() {
+    return {'userId': userId, if (nickname != null) 'nickname': nickname};
+  }
+}
+
+class GroupSettingsInput {
+  final bool? allowMembersInvite;
+  final bool? allowMembersAddList;
+  final String? defaultSplitMethod;
+  final String? currency;
+
+  GroupSettingsInput({
+    this.allowMembersInvite,
+    this.allowMembersAddList,
+    this.defaultSplitMethod,
+    this.currency,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (allowMembersInvite != null) 'allowMembersInvite': allowMembersInvite,
+      if (allowMembersAddList != null)
+        'allowMembersAddList': allowMembersAddList,
+      if (defaultSplitMethod != null) 'defaultSplitMethod': defaultSplitMethod,
+      if (currency != null) 'currency': currency,
+    };
+  }
+}

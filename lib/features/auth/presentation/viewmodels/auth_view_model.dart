@@ -32,14 +32,24 @@ class AuthViewModel extends StateNotifier<User?> {
   }
 
   Future<void> signUp({
-    required String name,
     required String email,
+    required String username,
     required String password,
-    required DateTime dob,
+    required String confirmPassword,
+    required DateTime dateOfBirth,
+    String verificationType = 'email',
   }) async {
     try {
-      final user = await repository.signUp(name, email, password, dob);
-      state = user;
+      await repository.signUp(
+        email: email,
+        username: username,
+        password: password,
+        confirmPassword: confirmPassword,
+        dateOfBirth: dateOfBirth,
+        verificationType: verificationType,
+      );
+      // Don't set state for registration since user needs to verify email first
+      // state = user;
     } catch (e) {
       rethrow;
     }

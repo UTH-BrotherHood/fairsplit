@@ -16,7 +16,8 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage>
+    with TickerProviderStateMixin {
   bool _loading = false;
   bool _obscurePassword = true;
 
@@ -26,10 +27,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   );
 
   final List<String> hintTexts = ["Email", "Password"];
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
-    // ignore: avoid_function_literals_in_foreach_calls
+    _animationController.dispose();
     controllers.forEach((controller) {
       controller.dispose();
     });
@@ -37,6 +64,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   login() async {
+    setState(() => _loading = true);
     try {
       await ref
           .read(authViewModelProvider.notifier)
@@ -46,11 +74,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       context.go('/');
     } catch (e) {
       if (!mounted) return;
+
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+
       showSnackBar(
-        content: e.toString(),
+        content: errorMessage,
         context: context,
         backgroundColor: Colors.red,
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -59,56 +95,101 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFF121212),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Form(
-            key: _globalKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 40),
-                _buildLogoSection(),
-
-                SizedBox(height: 40),
-                _buildLoginFields(),
-
-                SizedBox(height: 10),
-                _buildLoginButton(),
-
-                SizedBox(height: 20),
-                _buildSignupOption(context),
-
-                SizedBox(height: 30),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.login),
-                  label: _loading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        )
-                      : const Text('Sign in with Google'),
-                  onPressed: _loading
-                      ? null
-                      : () async {
-                          setState(() => _loading = true);
-                          await ref
-                              .read(authViewModelProvider.notifier)
-                              .signInWithGoogle();
-                          if (!mounted) return;
-                          setState(() => _loading = false);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1E1E2E),
+              const Color(0xFF0D0D14),
+              const Color(0xFF1A1A2E),
+            ],
           ),
         ),
+        child: Stack(
+          children: [
+            // Animated background elements
+            Positioned(
+              top: 100,
+              left: -50,
+              child: _buildFloatingCircle(
+                size: 120,
+                color: const Color(0xFFE83D7B).withOpacity(0.1),
+                animation: _fadeAnimation,
+              ),
+            ),
+            Positioned(
+              top: 200,
+              right: -30,
+              child: _buildFloatingCircle(
+                size: 80,
+                color: const Color(0xFF6A3DE8).withOpacity(0.1),
+                animation: _fadeAnimation,
+              ),
+            ),
+            Positioned(
+              bottom: 150,
+              left: 50,
+              child: _buildFloatingCircle(
+                size: 60,
+                color: const Color(0xFF3D7BE8).withOpacity(0.1),
+                animation: _fadeAnimation,
+              ),
+            ),
+
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Form(
+                      key: _globalKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 60),
+                          _buildHeader(),
+                          const SizedBox(height: 50),
+                          _buildLogoSection(),
+                          const SizedBox(height: 50),
+                          _buildLoginFields(),
+                          const SizedBox(height: 30),
+                          _buildLoginButton(),
+                          const SizedBox(height: 20),
+                          _buildSignupOption(context),
+                          const SizedBox(height: 30),
+                          _buildGoogleSignInButton(),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        const Text(
+          'Welcome Back',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 
@@ -116,34 +197,43 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFE83D7B), // Pink
-                Color(0xFF6A3DE8), // Purple
-              ],
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE83D7B).withOpacity(0.3),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
           ),
-          child: Icon(Icons.add_task, color: Colors.white, size: 40),
+          child: const Icon(
+            Icons.account_balance_wallet,
+            color: Colors.white,
+            size: 45,
+          ),
         ),
-        SizedBox(height: 16),
-        Text(
-          'Fairsplit',
+        const SizedBox(height: 20),
+        const Text(
+          'FairSplit',
           style: TextStyle(
-            fontSize: 38,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
-            // color: Colors.white,
-            letterSpacing: 1.2,
+            color: Colors.white,
+            letterSpacing: 1.5,
           ),
         ),
+        const SizedBox(height: 8),
         Text(
-          'Shared Shopping List',
+          'Smart expense sharing made simple',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white70,
+            color: Colors.white.withOpacity(0.7),
             letterSpacing: 0.5,
           ),
         ),
@@ -154,12 +244,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildLoginFields() {
     return Column(
       children: [
-        // Email field with custom styling
+        // Email field
         Container(
-          margin: EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
           child: CustomTextField(
             hintText: hintTexts[0],
@@ -169,11 +260,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
 
-        // Password field with custom styling
+        // Password field
         Container(
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
           child: CustomTextField(
             hintText: hintTexts[1],
@@ -185,7 +278,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 _obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: Colors.grey[600],
+                color: Colors.white.withOpacity(0.6),
               ),
               onPressed: () {
                 setState(() {
@@ -204,7 +297,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             onPressed: () {},
             child: Text(
               'Forgot Password?',
-              style: TextStyle(color: Color(0xFF6A3DE8), fontSize: 14),
+              style: TextStyle(
+                color: const Color(0xFF6A3DE8),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),
@@ -215,19 +312,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildLoginButton() {
     return SizedBox(
       width: double.infinity,
-      height: 55,
+      height: 56,
       child: AuthGradientButton(
         onPressed: () {
           if (_globalKey.currentState!.validate()) {
             login();
           }
         },
-        text: 'LOGIN',
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFFE83D7B), // Pink
-            Color(0xFF6A3DE8), // Purple
-          ],
+        text: 'SIGN IN',
+        isLoading: _loading,
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
         ),
       ),
     );
@@ -238,29 +333,114 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => SignUpPage()),
+          MaterialPageRoute(builder: (_) => const SignUpPage()),
         );
       },
-      child: Center(
-        child: RichText(
-          text: TextSpan(
-            style: TextStyle(fontSize: 15),
-            children: [
-              TextSpan(
-                text: 'Don\'t have an account? ',
-                style: TextStyle(color: Colors.white70),
-              ),
-              TextSpan(
-                text: 'Sign Up',
-                style: TextStyle(
-                  color: Color(0xFFE83D7B),
-                  fontWeight: FontWeight.bold,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 15),
+              children: [
+                TextSpan(
+                  text: 'Don\'t have an account? ',
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
                 ),
-              ),
-            ],
+                const TextSpan(
+                  text: 'Sign Up',
+                  style: TextStyle(
+                    color: Color(0xFFE83D7B),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: ElevatedButton.icon(
+        icon: _loading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.login, color: Colors.white),
+        label: _loading
+            ? const SizedBox.shrink()
+            : const Text(
+                'Continue with Google',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+        onPressed: _loading
+            ? null
+            : () async {
+                setState(() => _loading = true);
+                try {
+                  await ref
+                      .read(authViewModelProvider.notifier)
+                      .signInWithGoogle();
+                  if (!mounted) return;
+                  ref.invalidate(profileViewModelProvider);
+                  context.go('/');
+                } catch (e) {
+                  if (!mounted) return;
+                  showSnackBar(
+                    content: e.toString(),
+                    context: context,
+                    backgroundColor: Colors.red,
+                  );
+                } finally {
+                  if (mounted) setState(() => _loading = false);
+                }
+              },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingCircle({
+    required double size,
+    required Color color,
+    required Animation<double> animation,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: animation.value,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          ),
+        );
+      },
     );
   }
 }

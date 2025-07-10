@@ -1,7 +1,7 @@
 import 'package:fairsplit/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:fairsplit/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:fairsplit/features/auth/data/models/auth_response_model.dart';
-import 'package:fairsplit/features/auth/data/models/user_model.dart';
+import 'package:fairsplit/features/auth/data/models/register_response_model.dart';
 import 'package:fairsplit/features/auth/domain/entities/auth.dart';
 import 'package:fairsplit/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fairsplit/features/profile/data/datasources/profile_local_datasource.dart';
@@ -29,27 +29,30 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User> signUp(
-    String name,
-    String email,
-    String password,
-    DateTime dob,
-  ) async {
-    final AuthResponseModel response = await remoteDataSource.signUp(
-      name,
-      email,
-      password,
-      dob,
-    );
-    await localDataSource.saveTokens(
-      response.data.accessToken,
-      response.data.refreshToken,
+  Future<User> signUp({
+    required String email,
+    required String username,
+    required String password,
+    required String confirmPassword,
+    required DateTime dateOfBirth,
+    String verificationType = 'email',
+  }) async {
+    final RegisterResponseModel response = await remoteDataSource.signUp(
+      email: email,
+      username: username,
+      password: password,
+      confirmPassword: confirmPassword,
+      dateOfBirth: dateOfBirth,
+      verificationType: verificationType,
     );
 
-    final userModel = UserModel.fromJson(
-      response.data.user as Map<String, dynamic>,
-    );
-    return userModel.toEntity();
+    // Don't save tokens for registration since user needs to verify email first
+    // await localDataSource.saveTokens(
+    //   response.data.accessToken,
+    //   response.data.refreshToken,
+    // );
+
+    return response.data.user.toEntity();
   }
 
   @override

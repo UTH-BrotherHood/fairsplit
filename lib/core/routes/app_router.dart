@@ -1,6 +1,6 @@
 import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.dart';
 import 'package:fairsplit/features/auth/presentation/views/login_page.dart';
-import 'package:fairsplit/features/expenses/presentation/pages/add_expense_page.dart';
+import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
 import 'package:fairsplit/features/home/presentation/pages/home_page.dart';
 import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
 import 'package:fairsplit/features/setting/presentation/pages/settings_page.dart';
@@ -32,10 +32,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ProfilePageWrapper(),
       ),
       GoRoute(path: '/settings', builder: (context, state) => SettingsPage()),
-      GoRoute(
-        path: '/add-expense',
-        builder: (context, state) => const AddExpensePage(),
-      ),
+
       GoRoute(
         path: '/group/:groupId',
         builder: (context, state) {
@@ -49,6 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final listId = state.pathParameters['listId']!;
           return ShoppingListDetailPage(listId: listId);
         },
+      ),
+      GoRoute(
+        path: '/create-group',
+        builder: (context, state) => const CreateGroupPage(),
       ),
     ],
   );

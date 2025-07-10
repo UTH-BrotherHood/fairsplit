@@ -523,3 +523,110 @@ class GroupShoppingItemModel {
     );
   }
 }
+
+// Response models for group creation
+class GroupResponseModel {
+  final String message;
+  final GroupModel data;
+
+  GroupResponseModel({required this.message, required this.data});
+
+  factory GroupResponseModel.fromJson(Map<String, dynamic> json) {
+    return GroupResponseModel(
+      message: json['message'] ?? '',
+      data: GroupModel.fromJson(json['data']),
+    );
+  }
+
+  GroupResponse toEntity() {
+    return GroupResponse(message: message, data: data.toEntity());
+  }
+}
+
+// Request models for group creation
+class CreateGroupRequestModel {
+  final String name;
+  final String description;
+  final List<GroupMemberInputModel> members;
+  final GroupSettingsInputModel? settings;
+
+  CreateGroupRequestModel({
+    required this.name,
+    required this.description,
+    required this.members,
+    this.settings,
+  });
+
+  factory CreateGroupRequestModel.fromEntity(CreateGroupRequest entity) {
+    return CreateGroupRequestModel(
+      name: entity.name,
+      description: entity.description,
+      members: entity.members
+          .map((m) => GroupMemberInputModel.fromEntity(m))
+          .toList(),
+      settings: entity.settings != null
+          ? GroupSettingsInputModel.fromEntity(entity.settings!)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'members': members.map((m) => m.toJson()).toList(),
+      if (settings != null) 'settings': settings!.toJson(),
+    };
+  }
+}
+
+class GroupMemberInputModel {
+  final String userId;
+  final String? nickname;
+
+  GroupMemberInputModel({required this.userId, this.nickname});
+
+  factory GroupMemberInputModel.fromEntity(GroupMemberInput entity) {
+    return GroupMemberInputModel(
+      userId: entity.userId,
+      nickname: entity.nickname,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'userId': userId, if (nickname != null) 'nickname': nickname};
+  }
+}
+
+class GroupSettingsInputModel {
+  final bool? allowMembersInvite;
+  final bool? allowMembersAddList;
+  final String? defaultSplitMethod;
+  final String? currency;
+
+  GroupSettingsInputModel({
+    this.allowMembersInvite,
+    this.allowMembersAddList,
+    this.defaultSplitMethod,
+    this.currency,
+  });
+
+  factory GroupSettingsInputModel.fromEntity(GroupSettingsInput entity) {
+    return GroupSettingsInputModel(
+      allowMembersInvite: entity.allowMembersInvite,
+      allowMembersAddList: entity.allowMembersAddList,
+      defaultSplitMethod: entity.defaultSplitMethod,
+      currency: entity.currency,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (allowMembersInvite != null) 'allowMembersInvite': allowMembersInvite,
+      if (allowMembersAddList != null)
+        'allowMembersAddList': allowMembersAddList,
+      if (defaultSplitMethod != null) 'defaultSplitMethod': defaultSplitMethod,
+      if (currency != null) 'currency': currency,
+    };
+  }
+}

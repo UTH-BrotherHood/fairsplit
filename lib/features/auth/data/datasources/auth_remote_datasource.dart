@@ -3,6 +3,8 @@
 import 'package:fairsplit/core/constants/api_constants.dart';
 import 'package:fairsplit/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:fairsplit/features/auth/data/models/auth_response_model.dart';
+import 'package:fairsplit/features/auth/data/models/register_response_model.dart';
+import 'package:fairsplit/features/auth/data/models/error_response_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -16,33 +18,59 @@ class AuthRemoteDataSource {
       body: jsonEncode({'email': email, 'password': password}),
       headers: {'Content-Type': 'application/json'},
     );
+
     if (response.statusCode == 200) {
       return AuthResponseModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Login failed');
+      final responseBody = jsonDecode(response.body);
+
+      // Check if it's a structured error response
+      if (responseBody.containsKey('error')) {
+        final errorResponse = ErrorResponseModel.fromJson(responseBody);
+        throw Exception(errorResponse.error.getFormattedErrorMessage());
+      }
+
+      // Fallback for simple error messages
+      throw Exception(responseBody['message'] ?? 'Login failed');
     }
   }
 
-  Future<AuthResponseModel> signUp(
-    String name,
-    String email,
-    String password,
-    DateTime dob,
-  ) async {
+  Future<RegisterResponseModel> signUp({
+    required String email,
+    required String username,
+    required String password,
+    required String confirmPassword,
+    required DateTime dateOfBirth,
+    String verificationType = 'email',
+  }) async {
     final response = await client.post(
-      Uri.parse('${ApiConstants.baseUrl}/signup'),
+      Uri.parse('${ApiConstants.baseUrl}/auth/register'),
       body: jsonEncode({
-        'name': name,
         'email': email,
+        'username': username,
         'password': password,
-        'dob': dob.toIso8601String(),
+        'confirmPassword': confirmPassword,
+        'dateOfBirth': dateOfBirth.toIso8601String().split(
+          'T',
+        )[0], // Format: 1990-01-01
+        'verificationType': verificationType,
       }),
       headers: {'Content-Type': 'application/json'},
     );
-    if (response.statusCode == 200) {
-      return AuthResponseModel.fromJson(jsonDecode(response.body));
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return RegisterResponseModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Signup failed');
+      final responseBody = jsonDecode(response.body);
+
+      // Check if it's a structured error response
+      if (responseBody.containsKey('error')) {
+        final errorResponse = ErrorResponseModel.fromJson(responseBody);
+        throw Exception(errorResponse.error.getFormattedErrorMessage());
+      }
+
+      // Fallback for simple error messages
+      throw Exception(responseBody['message'] ?? 'Signup failed');
     }
   }
 
