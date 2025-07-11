@@ -8,13 +8,18 @@ import 'dart:convert';
 abstract class ShoppingListRemoteDataSource {
   Future<ShoppingListsResponse> getShoppingLists(String groupId);
   Future<ShoppingListResponse> getShoppingListDetail(String listId);
-  Future<ShoppingItemResponse> addItemToList(
-    String listId,
-    CreateShoppingItemRequest request,
+  Future<ShoppingListResponse> createShoppingList(
+    String groupId,
+    CreateShoppingListRequest request,
   );
+  Future<ShoppingListResponse> updateShoppingList(
+    String listId,
+    UpdateShoppingListRequest request,
+  );
+  Future<void> deleteShoppingList(String listId);
   Future<ShoppingItemsResponse> addItemsToList(
     String listId,
-    CreateShoppingItemsRequest request,
+    AddItemsToListRequest request,
   );
   Future<ShoppingItemResponse> updateItem(
     String listId,
@@ -23,7 +28,7 @@ abstract class ShoppingListRemoteDataSource {
   );
   Future<void> deleteItem(String listId, String itemId);
   Future<void> markItemAsPurchased(String listId, String itemId);
-  Future<void> markItemAsUnpurchased(String listId, String itemId);
+  Future<void> markListAsCompleted(String listId);
   Future<void> markListAsArchived(String listId);
 }
 
@@ -78,14 +83,14 @@ class ShoppingListRemoteDataSourceImpl implements ShoppingListRemoteDataSource {
   }
 
   @override
-  Future<ShoppingItemResponse> addItemToList(
-    String listId,
-    CreateShoppingItemRequest request,
+  Future<ShoppingListResponse> createShoppingList(
+    String groupId,
+    CreateShoppingListRequest request,
   ) async {
     final accessToken = await AuthLocalDataSource().getAccessToken();
 
     final response = await client.post(
-      Uri.parse('${ApiConstants.baseUrl}/shopping-lists/$listId/items'),
+      Uri.parse('${ApiConstants.baseUrl}/shopping-lists/groups/$groupId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
@@ -95,17 +100,59 @@ class ShoppingListRemoteDataSourceImpl implements ShoppingListRemoteDataSource {
 
     if (response.statusCode == 201) {
       final jsonMap = jsonDecode(response.body);
-      final responseModel = ShoppingItemResponseModel.fromJson(jsonMap);
+      final responseModel = ShoppingListResponseModel.fromJson(jsonMap);
       return responseModel.toEntity();
     } else {
-      throw Exception('Failed to add item: ${response.statusCode}');
+      throw Exception('Failed to create shopping list: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<ShoppingListResponse> updateShoppingList(
+    String listId,
+    UpdateShoppingListRequest request,
+  ) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+
+    final response = await client.patch(
+      Uri.parse('${ApiConstants.baseUrl}/shopping-lists/$listId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonMap = jsonDecode(response.body);
+      final responseModel = ShoppingListResponseModel.fromJson(jsonMap);
+      return responseModel.toEntity();
+    } else {
+      throw Exception('Failed to update shopping list: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<void> deleteShoppingList(String listId) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+
+    final response = await client.delete(
+      Uri.parse('${ApiConstants.baseUrl}/shopping-lists/$listId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete shopping list: ${response.statusCode}');
     }
   }
 
   @override
   Future<ShoppingItemsResponse> addItemsToList(
     String listId,
-    CreateShoppingItemsRequest request,
+    AddItemsToListRequest request,
   ) async {
     final accessToken = await AuthLocalDataSource().getAccessToken();
 
@@ -172,33 +219,42 @@ class ShoppingListRemoteDataSourceImpl implements ShoppingListRemoteDataSource {
 
   @override
   Future<void> markItemAsPurchased(String listId, String itemId) async {
-    await _updateItemPurchasedStatus(listId, itemId, true);
-  }
-
-  @override
-  Future<void> markItemAsUnpurchased(String listId, String itemId) async {
-    await _updateItemPurchasedStatus(listId, itemId, false);
-  }
-
-  Future<void> _updateItemPurchasedStatus(
-    String listId,
-    String itemId,
-    bool isPurchased,
-  ) async {
     final accessToken = await AuthLocalDataSource().getAccessToken();
 
     final response = await client.patch(
-      Uri.parse('${ApiConstants.baseUrl}/shopping-lists/$listId/items/$itemId'),
+      Uri.parse(
+        '${ApiConstants.baseUrl}/shopping-lists/$listId/items/$itemId/mark-purchased',
+      ),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
       },
-      body: jsonEncode({'isPurchased': isPurchased}),
     );
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to update item purchased status: ${response.statusCode}',
+        'Failed to mark item as purchased: ${response.statusCode}',
+      );
+    }
+  }
+
+  @override
+  Future<void> markListAsCompleted(String listId) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+
+    final response = await client.patch(
+      Uri.parse(
+        '${ApiConstants.baseUrl}/shopping-lists/$listId/mark-completed',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to mark list as completed: ${response.statusCode}',
       );
     }
   }

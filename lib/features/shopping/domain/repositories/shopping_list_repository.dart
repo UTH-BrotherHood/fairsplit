@@ -3,13 +3,18 @@ import 'package:fairsplit/features/shopping/domain/entities/shopping_list.dart';
 abstract class ShoppingListRepository {
   Future<ShoppingListsResponse> getShoppingLists(String groupId);
   Future<ShoppingListResponse> getShoppingListDetail(String listId);
-  Future<ShoppingItemResponse> addItemToList(
-    String listId,
-    CreateShoppingItemRequest request,
+  Future<ShoppingListResponse> createShoppingList(
+    String groupId,
+    CreateShoppingListRequest request,
   );
+  Future<ShoppingListResponse> updateShoppingList(
+    String listId,
+    UpdateShoppingListRequest request,
+  );
+  Future<void> deleteShoppingList(String listId);
   Future<ShoppingItemsResponse> addItemsToList(
     String listId,
-    CreateShoppingItemsRequest request,
+    AddItemsToListRequest request,
   );
   Future<ShoppingItemResponse> updateItem(
     String listId,
@@ -18,6 +23,6 @@ abstract class ShoppingListRepository {
   );
   Future<void> deleteItem(String listId, String itemId);
   Future<void> markItemAsPurchased(String listId, String itemId);
-  Future<void> markItemAsUnpurchased(String listId, String itemId);
+  Future<void> markListAsCompleted(String listId);
   Future<void> markListAsArchived(String listId);
 }

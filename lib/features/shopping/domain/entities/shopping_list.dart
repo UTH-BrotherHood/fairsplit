@@ -205,14 +205,22 @@ class UpdateShoppingItemRequest {
   final int? quantity;
   final String? unit;
   final double? estimatedPrice;
+  final String? note;
   final String? category;
+  final bool? isPurchased;
+  final DateTime? purchasedAt;
+  final String? purchasedBy;
 
   UpdateShoppingItemRequest({
     this.name,
     this.quantity,
     this.unit,
     this.estimatedPrice,
+    this.note,
     this.category,
+    this.isPurchased,
+    this.purchasedAt,
+    this.purchasedBy,
   });
 
   Map<String, dynamic> toJson() {
@@ -221,7 +229,75 @@ class UpdateShoppingItemRequest {
     if (quantity != null) data['quantity'] = quantity;
     if (unit != null) data['unit'] = unit;
     if (estimatedPrice != null) data['estimatedPrice'] = estimatedPrice;
+    if (note != null) data['note'] = note;
     if (category != null) data['category'] = category;
+    if (isPurchased != null) data['isPurchased'] = isPurchased;
+    if (purchasedAt != null)
+      data['purchasedAt'] = purchasedAt!.toIso8601String();
+    if (purchasedBy != null) data['purchasedBy'] = purchasedBy;
     return data;
   }
+}
+
+// Request classes for shopping list operations
+class CreateShoppingListRequest {
+  final String name;
+  final String description;
+  final List<String> tags;
+  final DateTime? dueDate;
+
+  CreateShoppingListRequest({
+    required this.name,
+    required this.description,
+    required this.tags,
+    this.dueDate,
+  });
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {
+      'name': name,
+      'description': description,
+      'tags': tags,
+    };
+    if (dueDate != null) {
+      data['dueDate'] = dueDate!.toIso8601String();
+    }
+    return data;
+  }
+}
+
+class UpdateShoppingListRequest {
+  final String? name;
+  final String? description;
+  final List<String>? tags;
+  final DateTime? dueDate;
+  final String? status;
+
+  UpdateShoppingListRequest({
+    this.name,
+    this.description,
+    this.tags,
+    this.dueDate,
+    this.status,
+  });
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    if (name != null) data['name'] = name;
+    if (description != null) data['description'] = description;
+    if (tags != null) data['tags'] = tags;
+    if (dueDate != null) data['dueDate'] = dueDate!.toIso8601String();
+    if (status != null) data['status'] = status;
+    return data;
+  }
+}
+
+class AddItemsToListRequest {
+  final List<CreateShoppingItemRequest> items;
+
+  AddItemsToListRequest({required this.items});
+
+  Map<String, dynamic> toJson() => {
+    'items': items.map((item) => item.toJson()).toList(),
+  };
 }
