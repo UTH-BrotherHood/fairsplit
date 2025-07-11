@@ -4,4 +4,8 @@ class ApiConstants {
 
   // Groups endpoints
   static const String myGroups = '/groups/my-groups';
+
+  // User endpoints
+  static const String userProfile = '/users/me';
 }
+// 
