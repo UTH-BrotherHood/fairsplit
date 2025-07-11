@@ -1,3 +1,4 @@
+import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
 import 'package:fairsplit/features/groups/domain/entities/group.dart';
 
 class GroupModel {
@@ -338,11 +339,17 @@ class GroupBillModel {
   GroupBill toEntity() => GroupBill(
     id: id,
     groupId: groupId,
-    name: title,
+    title: title,
     description: description,
-    totalAmount: amount,
+    amount: amount,
     currency: currency,
+    date: date,
+    category: category,
+    splitMethod: splitMethod,
+    paidBy: paidBy,
+    participants: participants.map((p) => p.toEntity()).toList(),
     status: status,
+    payments: payments.map((p) => p.toEntity()).toList(),
     createdBy: createdBy,
     createdAt: createdAt,
     updatedAt: updatedAt,
@@ -367,6 +374,9 @@ class BillParticipantModel {
       amountOwed: (json['amountOwed'] ?? 0).toDouble(),
     );
   }
+
+  BillParticipant toEntity() =>
+      BillParticipant(userId: userId, share: share, amountOwed: amountOwed);
 }
 
 class BillPaymentModel {
@@ -407,6 +417,18 @@ class BillPaymentModel {
       ),
     );
   }
+
+  Payment toEntity() => Payment(
+    id: id,
+    amount: amount,
+    paidBy: paidBy,
+    paidTo: paidTo,
+    date: date,
+    method: method,
+    notes: notes,
+    createdBy: createdBy,
+    createdAt: createdAt,
+  );
 }
 
 class GroupShoppingListModel {

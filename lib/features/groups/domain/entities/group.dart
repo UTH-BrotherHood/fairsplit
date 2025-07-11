@@ -1,3 +1,5 @@
+import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
+
 class Group {
   final String id;
   final String name;
@@ -113,11 +115,17 @@ class GroupsResponse {
 class GroupBill {
   final String id;
   final String groupId;
-  final String name;
+  final String title;
   final String description;
-  final double totalAmount;
+  final double amount;
   final String currency;
+  final DateTime date;
+  final String category;
+  final String splitMethod;
+  final String paidBy;
+  final List<BillParticipant> participants;
   final String status;
+  final List<Payment> payments;
   final String createdBy;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -125,11 +133,17 @@ class GroupBill {
   GroupBill({
     required this.id,
     required this.groupId,
-    required this.name,
+    required this.title,
     required this.description,
-    required this.totalAmount,
+    required this.amount,
     required this.currency,
+    required this.date,
+    required this.category,
+    required this.splitMethod,
+    required this.paidBy,
+    required this.participants,
     required this.status,
+    required this.payments,
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,

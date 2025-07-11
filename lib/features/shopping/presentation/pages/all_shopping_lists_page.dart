@@ -27,6 +27,7 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
     with WidgetsBindingObserver {
   Map<String, List<ShoppingList>> groupShoppingLists = {};
   bool isLoading = false;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -43,19 +44,24 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
 
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
+    // Clear the state to prevent potential memory leaks
+    groupShoppingLists.clear();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && !_isDisposed && mounted) {
       // Refresh data when app comes back to foreground
       _loadAllShoppingLists();
     }
   }
 
   Future<void> _loadAllShoppingLists() async {
+    if (_isDisposed || !mounted) return;
+
     setState(() {
       isLoading = true;
     });
@@ -63,6 +69,9 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
     try {
       // Get all groups first
       await ref.read(groupViewModelProvider.notifier).getMyGroups();
+
+      if (_isDisposed || !mounted) return;
+
       final groupsState = ref.read(groupViewModelProvider);
 
       if (groupsState.hasValue) {
@@ -71,10 +80,15 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
 
         // Load shopping lists for each group
         for (final group in groups) {
+          if (_isDisposed || !mounted) return;
+
           try {
             await ref
                 .read(shoppingListsViewModelProvider.notifier)
                 .getShoppingLists(group.id);
+
+            if (_isDisposed || !mounted) return;
+
             final listsState = ref.read(shoppingListsViewModelProvider);
 
             if (listsState.hasValue) {
@@ -88,20 +102,24 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
           }
         }
 
-        setState(() {
-          groupShoppingLists = allLists;
-        });
+        if (!_isDisposed && mounted) {
+          setState(() {
+            groupShoppingLists = allLists;
+          });
+        }
       }
     } catch (e) {
-      if (mounted) {
+      if (!_isDisposed && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Lỗi khi tải danh sách: $e')));
       }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (!_isDisposed && mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -123,7 +141,11 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
         iconTheme: const IconThemeData(color: Colors.black87),
         actions: [
           IconButton(
-            onPressed: _loadAllShoppingLists,
+            onPressed: () {
+              if (!_isDisposed && mounted) {
+                _loadAllShoppingLists();
+              }
+            },
             icon: const Icon(Icons.refresh),
           ),
         ],
@@ -137,7 +159,11 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
             : _buildShoppingListsView(),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateShoppingListDialog,
+        onPressed: () {
+          if (!_isDisposed && mounted) {
+            _showCreateShoppingListDialog();
+          }
+        },
         backgroundColor: const Color(0xFF4A90E2),
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -166,7 +192,11 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: _showCreateShoppingListDialog,
+            onPressed: () {
+              if (!_isDisposed && mounted) {
+                _showCreateShoppingListDialog();
+              }
+            },
             icon: const Icon(Icons.add),
             label: const Text('Tạo Shopping List'),
             style: ElevatedButton.styleFrom(
@@ -457,7 +487,7 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
               CreateShoppingListPage(groupId: selectedGroupId),
         ),
       ).then((result) {
-        if (result == true) {
+        if (result == true && !_isDisposed && mounted) {
           _loadAllShoppingLists();
         }
       });
@@ -509,7 +539,7 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
                             CreateShoppingListPage(groupId: group.id),
                       ),
                     ).then((result) {
-                      if (result == true) {
+                      if (result == true && !_isDisposed && mounted) {
                         _loadAllShoppingLists();
                       }
                     });

@@ -372,7 +372,7 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          bill.name,
+                          bill.title,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -433,7 +433,7 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${bill.totalAmount.toStringAsFixed(0)} ${bill.currency}',
+                    '${bill.amount.toStringAsFixed(0)} ${bill.currency}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
