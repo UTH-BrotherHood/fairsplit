@@ -57,6 +57,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void dispose() {
     _animationController.dispose();
+    // ignore: avoid_function_literals_in_foreach_calls
     controllers.forEach((controller) {
       controller.dispose();
     });
