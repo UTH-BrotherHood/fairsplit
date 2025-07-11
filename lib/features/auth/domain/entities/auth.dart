@@ -7,7 +7,7 @@ class User {
   final String? email;
   final String? phone;
   final List<String> groups;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
   final String? avatarUrl;
   final String verify;
   final String verificationType;
@@ -27,7 +27,7 @@ class User {
     this.email,
     this.phone,
     this.groups = const [],
-    required this.dateOfBirth,
+    this.dateOfBirth,
     this.avatarUrl,
     required this.verify,
     required this.verificationType,

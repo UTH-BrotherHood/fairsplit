@@ -1,3 +1,4 @@
+import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
 import 'package:fairsplit/features/groups/domain/entities/group.dart';
 
 class GroupModel {
@@ -40,8 +41,12 @@ class GroupModel {
               ?.map((member) => GroupMemberModel.fromJson(member))
               .toList() ??
           [],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
       isArchived: json['isArchived'] ?? false,
       settings: GroupSettingsModel.fromJson(json['settings'] ?? {}),
       bills:
@@ -94,7 +99,9 @@ class GroupMemberModel {
     return GroupMemberModel(
       userId: json['userId'] ?? '',
       role: json['role'] ?? '',
-      joinedAt: DateTime.parse(json['joinedAt']),
+      joinedAt: json['joinedAt'] != null
+          ? DateTime.parse(json['joinedAt'])
+          : DateTime.now(),
       nickname: json['nickname'],
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
@@ -332,11 +339,17 @@ class GroupBillModel {
   GroupBill toEntity() => GroupBill(
     id: id,
     groupId: groupId,
-    name: title,
+    title: title,
     description: description,
-    totalAmount: amount,
+    amount: amount,
     currency: currency,
+    date: date,
+    category: category,
+    splitMethod: splitMethod,
+    paidBy: paidBy,
+    participants: participants.map((p) => p.toEntity()).toList(),
     status: status,
+    payments: payments.map((p) => p.toEntity()).toList(),
     createdBy: createdBy,
     createdAt: createdAt,
     updatedAt: updatedAt,
@@ -361,6 +374,9 @@ class BillParticipantModel {
       amountOwed: (json['amountOwed'] ?? 0).toDouble(),
     );
   }
+
+  BillParticipant toEntity() =>
+      BillParticipant(userId: userId, share: share, amountOwed: amountOwed);
 }
 
 class BillPaymentModel {
@@ -401,6 +417,18 @@ class BillPaymentModel {
       ),
     );
   }
+
+  Payment toEntity() => Payment(
+    id: id,
+    amount: amount,
+    paidBy: paidBy,
+    paidTo: paidTo,
+    date: date,
+    method: method,
+    notes: notes,
+    createdBy: createdBy,
+    createdAt: createdAt,
+  );
 }
 
 class GroupShoppingListModel {
@@ -534,7 +562,7 @@ class GroupResponseModel {
   factory GroupResponseModel.fromJson(Map<String, dynamic> json) {
     return GroupResponseModel(
       message: json['message'] ?? '',
-      data: GroupModel.fromJson(json['data']),
+      data: GroupModel.fromJson(json['result'] ?? {}),
     );
   }
 

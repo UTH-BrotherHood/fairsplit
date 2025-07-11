@@ -18,11 +18,32 @@ class ShoppingListRepositoryImpl implements ShoppingListRepository {
   }
 
   @override
-  Future<ShoppingItemResponse> addItemToList(
-    String listId,
-    CreateShoppingItemRequest request,
+  Future<ShoppingListResponse> createShoppingList(
+    String groupId,
+    CreateShoppingListRequest request,
   ) async {
-    return await remoteDataSource.addItemToList(listId, request);
+    return await remoteDataSource.createShoppingList(groupId, request);
+  }
+
+  @override
+  Future<ShoppingListResponse> updateShoppingList(
+    String listId,
+    UpdateShoppingListRequest request,
+  ) async {
+    return await remoteDataSource.updateShoppingList(listId, request);
+  }
+
+  @override
+  Future<void> deleteShoppingList(String listId) async {
+    await remoteDataSource.deleteShoppingList(listId);
+  }
+
+  @override
+  Future<ShoppingItemsResponse> addItemsToList(
+    String listId,
+    AddItemsToListRequest request,
+  ) async {
+    return await remoteDataSource.addItemsToList(listId, request);
   }
 
   @override
@@ -45,20 +66,12 @@ class ShoppingListRepositoryImpl implements ShoppingListRepository {
   }
 
   @override
-  Future<void> markItemAsUnpurchased(String listId, String itemId) async {
-    await remoteDataSource.markItemAsUnpurchased(listId, itemId);
+  Future<void> markListAsCompleted(String listId) async {
+    await remoteDataSource.markListAsCompleted(listId);
   }
 
   @override
   Future<void> markListAsArchived(String listId) async {
     await remoteDataSource.markListAsArchived(listId);
-  }
-
-  @override
-  Future<ShoppingItemsResponse> addItemsToList(
-    String listId,
-    CreateShoppingItemsRequest request,
-  ) async {
-    return await remoteDataSource.addItemsToList(listId, request);
   }
 }

@@ -19,10 +19,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themColor = ref.watch(themeColorProvider);
+    final themeColor = ref.watch(themeColorProvider);
     final router = ref.watch(routerProvider);
+
     return MaterialApp.router(
-      key: ValueKey(themColor),
+      key: ValueKey(themeColor),
       debugShowCheckedModeBanner: false,
       title: 'FairSplit',
       routerConfig: router,

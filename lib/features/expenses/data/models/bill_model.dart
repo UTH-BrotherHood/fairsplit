@@ -45,7 +45,7 @@ class BillModel {
       description: json['description'] ?? '',
       amount: (json['amount'] ?? 0).toDouble(),
       currency: json['currency'] ?? 'VND',
-      date: DateTime.parse(json['date']),
+      date: _parseDate(json['date']),
       category: json['category'] ?? '',
       splitMethod: json['splitMethod'] ?? 'equal',
       paidBy: json['paidBy'] ?? '',
@@ -61,9 +61,24 @@ class BillModel {
               .toList() ??
           [],
       createdBy: json['createdBy'] ?? '',
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: _parseDate(json['createdAt']),
+      updatedAt: _parseDate(json['updatedAt']),
     );
+  }
+
+  static DateTime _parseDate(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
+    try {
+      if (dateValue is String) {
+        return DateTime.parse(dateValue);
+      } else if (dateValue is DateTime) {
+        return dateValue;
+      }
+      return DateTime.now();
+    } catch (e) {
+      print('Error parsing date: $dateValue - $e');
+      return DateTime.now();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -184,12 +199,27 @@ class PaymentModel {
       amount: (json['amount'] ?? 0).toDouble(),
       paidBy: json['paidBy'] ?? '',
       paidTo: json['paidTo'] ?? '',
-      date: DateTime.parse(json['date']),
+      date: _parseDate(json['date']),
       method: json['method'] ?? 'cash',
       notes: json['notes'] ?? '',
       createdBy: json['createdBy'] ?? '',
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: _parseDate(json['createdAt']),
     );
+  }
+
+  static DateTime _parseDate(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
+    try {
+      if (dateValue is String) {
+        return DateTime.parse(dateValue);
+      } else if (dateValue is DateTime) {
+        return dateValue;
+      }
+      return DateTime.now();
+    } catch (e) {
+      print('Error parsing date: $dateValue - $e');
+      return DateTime.now();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -275,7 +305,7 @@ class PaymentsResponseModel {
     return PaymentsResponseModel(
       message: json['message'] ?? '',
       result:
-          (json['result'] as List<dynamic>?)
+          (json['data'] as List<dynamic>?) // Changed from 'result' to 'data'
               ?.map((payment) => PaymentModel.fromJson(payment))
               .toList() ??
           [],

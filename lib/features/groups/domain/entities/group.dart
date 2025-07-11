@@ -1,3 +1,5 @@
+import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
+
 class Group {
   final String id;
   final String name;
@@ -48,7 +50,7 @@ class GroupUser {
   final String id;
   final String username;
   final String email;
-  final String phone;
+  final String? phone;
   final String? avatarUrl;
   final String verify;
   final List<String> blockedUsers;
@@ -58,7 +60,7 @@ class GroupUser {
     required this.id,
     required this.username,
     required this.email,
-    required this.phone,
+    this.phone,
     this.avatarUrl,
     required this.verify,
     required this.blockedUsers,
@@ -113,11 +115,17 @@ class GroupsResponse {
 class GroupBill {
   final String id;
   final String groupId;
-  final String name;
+  final String title;
   final String description;
-  final double totalAmount;
+  final double amount;
   final String currency;
+  final DateTime date;
+  final String category;
+  final String splitMethod;
+  final String paidBy;
+  final List<BillParticipant> participants;
   final String status;
+  final List<Payment> payments;
   final String createdBy;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -125,11 +133,17 @@ class GroupBill {
   GroupBill({
     required this.id,
     required this.groupId,
-    required this.name,
+    required this.title,
     required this.description,
-    required this.totalAmount,
+    required this.amount,
     required this.currency,
+    required this.date,
+    required this.category,
+    required this.splitMethod,
+    required this.paidBy,
+    required this.participants,
     required this.status,
+    required this.payments,
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
@@ -199,11 +213,16 @@ class CreateGroupRequest {
 class GroupMemberInput {
   final String userId;
   final String? nickname;
+  final String? role;
 
-  GroupMemberInput({required this.userId, this.nickname});
+  GroupMemberInput({required this.userId, this.nickname, this.role});
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId, if (nickname != null) 'nickname': nickname};
+    return {
+      'userId': userId,
+      if (nickname != null) 'nickname': nickname,
+      if (role != null) 'role': role,
+    };
   }
 }
 
@@ -227,6 +246,87 @@ class GroupSettingsInput {
         'allowMembersAddList': allowMembersAddList,
       if (defaultSplitMethod != null) 'defaultSplitMethod': defaultSplitMethod,
       if (currency != null) 'currency': currency,
+    };
+  }
+}
+
+// User search entities
+class UserSearchResult {
+  final String id;
+  final String username;
+  final String email;
+  final String phone;
+  final String? avatarUrl;
+  final String verify;
+
+  UserSearchResult({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.phone,
+    this.avatarUrl,
+    required this.verify,
+  });
+}
+
+class UserSearchResponse {
+  final String message;
+  final List<UserSearchResult> users;
+
+  UserSearchResponse({required this.message, required this.users});
+}
+
+// Member management entities
+class GroupMembersResponse {
+  final String message;
+  final List<GroupMember> result;
+
+  GroupMembersResponse({required this.message, required this.result});
+}
+
+class AddMembersRequest {
+  final List<GroupMemberInput> members;
+
+  AddMembersRequest({required this.members});
+
+  Map<String, dynamic> toJson() {
+    return {'members': members.map((m) => m.toJson()).toList()};
+  }
+}
+
+class UpdateMemberRequest {
+  final String? role;
+  final String? nickname;
+
+  UpdateMemberRequest({this.role, this.nickname});
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (role != null) 'role': role,
+      if (nickname != null) 'nickname': nickname,
+    };
+  }
+}
+
+class UpdateGroupRequest {
+  final String? name;
+  final String? description;
+  final String? avatarUrl;
+  final GroupSettingsInput? settings;
+
+  UpdateGroupRequest({
+    this.name,
+    this.description,
+    this.avatarUrl,
+    this.settings,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      if (settings != null) 'settings': settings!.toJson(),
     };
   }
 }

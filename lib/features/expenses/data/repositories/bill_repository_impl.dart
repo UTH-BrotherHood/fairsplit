@@ -64,4 +64,18 @@ class BillRepositoryImpl implements BillRepository {
   Future<void> deletePayment(String billId, String paymentId) async {
     await remoteDataSource.deletePayment(billId, paymentId);
   }
+
+  @override
+  Future<BillResponse> updateBill(
+    String billId,
+    CreateBillRequest request,
+  ) async {
+    final response = await remoteDataSource.updateBill(billId, request);
+    return response.toEntity();
+  }
+
+  @override
+  Future<void> deleteBill(String billId) async {
+    await remoteDataSource.deleteBill(billId);
+  }
 }

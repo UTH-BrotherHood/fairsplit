@@ -38,6 +38,49 @@ class ShoppingListsViewModel
       await getShoppingLists(_currentGroupId!);
     }
   }
+
+  Future<void> createShoppingList(
+    String groupId,
+    CreateShoppingListRequest request,
+  ) async {
+    try {
+      await repository.createShoppingList(groupId, request);
+      // Refresh the list to get updated data
+      await getShoppingLists(groupId);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> updateShoppingList(
+    String listId,
+    UpdateShoppingListRequest request,
+  ) async {
+    try {
+      await repository.updateShoppingList(listId, request);
+      // Refresh the list to get updated data
+      if (_currentGroupId != null) {
+        await getShoppingLists(_currentGroupId!);
+      }
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteShoppingList(String listId) async {
+    try {
+      await repository.deleteShoppingList(listId);
+      // Refresh the list to get updated data
+      if (_currentGroupId != null) {
+        await getShoppingLists(_currentGroupId!);
+      }
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
 }
 
 // ViewModel for a specific shopping list
@@ -64,7 +107,9 @@ class ShoppingListDetailViewModel
     if (_currentListId == null) return;
 
     try {
-      await repository.addItemToList(_currentListId!, request);
+      // Convert single item to AddItemsToListRequest
+      final addItemsRequest = AddItemsToListRequest(items: [request]);
+      await repository.addItemsToList(_currentListId!, addItemsRequest);
       // Refresh the list to get updated data
       await getShoppingListDetail(_currentListId!);
     } catch (e, st) {
@@ -76,7 +121,9 @@ class ShoppingListDetailViewModel
     if (_currentListId == null) return;
 
     try {
-      await repository.addItemsToList(_currentListId!, request);
+      // Convert CreateShoppingItemsRequest to AddItemsToListRequest
+      final addItemsRequest = AddItemsToListRequest(items: request.items);
+      await repository.addItemsToList(_currentListId!, addItemsRequest);
       // Refresh the list to get updated data
       await getShoppingListDetail(_currentListId!);
     } catch (e, st) {
@@ -135,7 +182,16 @@ class ShoppingListDetailViewModel
       if (isPurchased) {
         await repository.markItemAsPurchased(_currentListId!, itemId);
       } else {
-        await repository.markItemAsUnpurchased(_currentListId!, itemId);
+        // Use updateItem to mark as unpurchased
+        await repository.updateItem(
+          _currentListId!,
+          itemId,
+          UpdateShoppingItemRequest(
+            isPurchased: false,
+            purchasedAt: null,
+            purchasedBy: null,
+          ),
+        );
       }
 
       // Refresh the list to get updated data from server

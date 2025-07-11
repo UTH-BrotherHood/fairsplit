@@ -1,64 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fairsplit/core/theme/app_colors.dart';
 
 class AppTheme {
-  // Colors
-  static const Color primaryColor = Color(0xFF87CEEB); // Sky Blue (pastel)
-  static const Color backgroundColor = Colors.white;
-  static const Color surfaceColor = Colors.white;
-  static const Color textPrimaryColor = Colors.black;
-  static const Color textSecondaryColor = Color(0xFF757575);
-  static const Color dividerColor = Color(0xFFE0E0E0);
-  static const Color shadowColor = Color(0x1A000000);
-
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: const ColorScheme.light(
-        primary: primaryColor,
-        secondary: primaryColor,
-        background: backgroundColor,
-        surface: surfaceColor,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onBackground: textPrimaryColor,
-        onSurface: textPrimaryColor,
+      colorScheme: ColorScheme.light(
+        primary: AppColors.primaryColor,
+        secondary: AppColors.secondaryColor,
+        background: AppColors.backgroundColor,
+        surface: AppColors.surfaceColor,
+        onPrimary: AppColors.textOnPrimary,
+        onSecondary: AppColors.textOnSecondary,
+        onBackground: AppColors.textPrimaryColor,
+        onSurface: AppColors.textPrimaryColor,
+        error: AppColors.errorColor,
+        onError: AppColors.textOnPrimary,
       ),
 
       // Font family
       textTheme: GoogleFonts.readexProTextTheme().apply(
-        bodyColor: textPrimaryColor,
-        displayColor: textPrimaryColor,
+        bodyColor: AppColors.textPrimaryColor,
+        displayColor: AppColors.textPrimaryColor,
       ),
 
       // AppBar theme
       appBarTheme: AppBarTheme(
-        backgroundColor: backgroundColor,
-        foregroundColor: textPrimaryColor,
+        backgroundColor: AppColors.backgroundColor,
+        foregroundColor: AppColors.textPrimaryColor,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.readexPro(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: textPrimaryColor,
+          color: AppColors.textPrimaryColor,
         ),
-        iconTheme: const IconThemeData(color: textPrimaryColor),
+        iconTheme: IconThemeData(color: AppColors.textPrimaryColor),
       ),
 
       // Bottom Navigation Bar theme
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: backgroundColor,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: textSecondaryColor,
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: AppColors.backgroundColor,
+        selectedItemColor: AppColors.primaryColor,
+        unselectedItemColor: AppColors.textSecondaryColor,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: AppColors.textOnPrimary,
           textStyle: GoogleFonts.readexPro(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -72,8 +76,8 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: textPrimaryColor,
-          side: const BorderSide(color: dividerColor),
+          foregroundColor: AppColors.textPrimaryColor,
+          side: BorderSide(color: AppColors.dividerColor),
           textStyle: GoogleFonts.readexPro(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -87,7 +91,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primaryColor,
+          foregroundColor: AppColors.primaryColor,
           textStyle: GoogleFonts.readexPro(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -96,17 +100,17 @@ class AppTheme {
       ),
 
       // FloatingActionButton theme
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: AppColors.textOnPrimary,
       ),
 
       // Card theme
-      cardTheme: const CardThemeData(
-        color: surfaceColor,
+      cardTheme: CardThemeData(
+        color: AppColors.surfaceColor,
         elevation: 2,
-        shadowColor: shadowColor,
-        shape: RoundedRectangleBorder(
+        shadowColor: AppColors.shadowColor,
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
@@ -114,37 +118,40 @@ class AppTheme {
       // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: backgroundColor,
+        fillColor: AppColors.backgroundColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: dividerColor),
+          borderSide: BorderSide(color: AppColors.dividerColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: dividerColor),
+          borderSide: BorderSide(color: AppColors.dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
         ),
         labelStyle: GoogleFonts.readexPro(
-          color: textSecondaryColor,
+          color: AppColors.textSecondaryColor,
           fontSize: 16,
         ),
         hintStyle: GoogleFonts.readexPro(
-          color: textSecondaryColor,
+          color: AppColors.textSecondaryColor,
           fontSize: 16,
         ),
       ),
 
       // Icon theme
-      iconTheme: const IconThemeData(color: textSecondaryColor, size: 24),
+      iconTheme: IconThemeData(color: AppColors.textSecondaryColor, size: 24),
 
       // Divider theme
-      dividerTheme: const DividerThemeData(color: dividerColor, thickness: 1),
+      dividerTheme: DividerThemeData(
+        color: AppColors.dividerColor,
+        thickness: 1,
+      ),
 
       // Scaffold background color
-      scaffoldBackgroundColor: backgroundColor,
+      scaffoldBackgroundColor: AppColors.scaffoldBackgroundColor,
     );
   }
 }

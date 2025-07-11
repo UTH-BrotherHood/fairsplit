@@ -1,160 +1,133 @@
-import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.dart';
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
-import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
-import 'package:fairsplit/features/groups/presentation/viewmodels/group_view_model.dart';
-import 'package:fairsplit/features/expenses/presentation/pages/add_expense_page.dart';
-import 'package:fairsplit/injection.dart';
+import 'package:fairsplit/features/home/presentation/widgets/groups_screen.dart';
+import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
+import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
+import 'package:fairsplit/features/expenses/presentation/pages/all_bills_page.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+final selectedPageProvider = StateProvider<int>((ref) => 0);
+
+class PlaceholderScreen extends StatelessWidget {
+  final String title;
+
+  const PlaceholderScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.construction, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 final pages = [
-  const HomeScreen(),
-  const AnalyticsScreen(),
-  const ExpensesScreen(),
+  const HomeScreen(), // Home
+  const AllBillsPage(), // Bills - now goes directly to All Bills
+  const ExpensesScreen(), // Expenses
+  const GroupsScreen(), // Groups
+  const ProfilePage(),
+  // const PlaceholderScreen(title: 'Profile'), // Profile
 ];
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
-
-  void _showSettingsMenu(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authViewModelProvider);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                if (user != null) {
-                  context.push('/profile');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/settings');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () async {
-                Navigator.pop(context);
-                await ref.read(authViewModelProvider.notifier).signOut();
-                if (context.mounted) {
-                  context.go('/login');
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPage = ref.watch(selectedPageProvider);
     return Scaffold(
       backgroundColor: Colors.white,
-      body: pages[selectedPage],
+      body: SafeArea(child: pages[selectedPage]),
+      floatingActionButton:
+          selectedPage ==
+              3 // Only show on Groups tab
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateGroupPage(),
+                  ),
+                );
+              },
+              backgroundColor: const Color(0xFF4A90E2),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
+        height: 90,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 5),
+              spreadRadius: 0,
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BottomAppBar(
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            color: Colors.transparent,
-            elevation: 0,
-            child: Container(
-              height: 70,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  _buildNavItem(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    isSelected: selectedPage == 0,
-                    onTap: () =>
-                        ref.read(selectedPageProvider.notifier).state = 0,
-                  ),
-                  _buildNavItem(
-                    icon: Icons.analytics_rounded,
-                    label: 'Analytics',
-                    isSelected: selectedPage == 1,
-                    onTap: () =>
-                        ref.read(selectedPageProvider.notifier).state = 1,
-                  ),
-                  const SizedBox(width: 60), // Space for FAB
-                  _buildNavItem(
-                    icon: Icons.receipt_long_rounded,
-                    label: 'Expenses',
-                    isSelected: selectedPage == 2,
-                    onTap: () =>
-                        ref.read(selectedPageProvider.notifier).state = 2,
-                  ),
-                  _buildNavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    isSelected: selectedPage == 3,
-                    onTap: () => _showSettingsMenu(context, ref),
-                  ),
-                ],
-              ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem(
+              icon: Icons.home_rounded,
+              label: 'Home',
+              isSelected: selectedPage == 0,
+              onTap: () => ref.read(selectedPageProvider.notifier).state = 0,
             ),
-          ),
-        ),
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF87CEEB), Color(0xFF5F9FBF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF87CEEB).withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+            _buildNavItem(
+              icon: Icons.receipt_long_rounded,
+              label: 'Bills',
+              isSelected: selectedPage == 1,
+              onTap: () => ref.read(selectedPageProvider.notifier).state = 1,
+            ),
+            _buildNavItem(
+              icon: Icons.receipt_long_rounded,
+              label: 'Expenses',
+              isSelected: selectedPage == 2,
+              onTap: () => ref.read(selectedPageProvider.notifier).state = 2,
+            ),
+            _buildNavItem(
+              icon: Icons.group_rounded,
+              label: 'Groups',
+              isSelected: selectedPage == 3,
+              onTap: () => ref.read(selectedPageProvider.notifier).state = 3,
+            ),
+            _buildNavItem(
+              icon: Icons.person_rounded,
+              label: 'Profile',
+              isSelected: selectedPage == 4,
+              onTap: () => ref.read(selectedPageProvider.notifier).state = 4,
             ),
           ],
         ),
-        child: FloatingActionButton(
-          tooltip: 'Add Expense',
-          heroTag: 'add-expense',
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          onPressed: () => _showAddExpenseDialog(context),
-          child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
-        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -164,119 +137,45 @@ class HomePage extends ConsumerWidget {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF87CEEB).withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: isSelected ? const Color(0xFF87CEEB) : Colors.grey[400],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: isSelected ? const Color(0xFF87CEEB) : Colors.grey[400],
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddExpenseDialog(BuildContext context) {
-    showDialog(context: context, builder: (context) => _AddExpenseDialog());
-  }
-}
-
-class _AddExpenseDialog extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupsState = ref.watch(groupViewModelProvider);
-
-    return AlertDialog(
-      title: const Text('Thêm chi tiêu'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Chọn nhóm để thêm chi tiêu:'),
-          const SizedBox(height: 16),
-          groupsState.when(
-            data: (groupsResponse) {
-              if (groupsResponse.items.isEmpty) {
-                return Column(
-                  children: [
-                    const Text('Bạn chưa có nhóm nào.'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        context.push('/create-group');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF87CEEB),
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Tạo nhóm mới'),
-                    ),
-                  ],
-                );
-              }
-
-              return SizedBox(
-                height: 200,
-                width: double.maxFinite,
-                child: ListView.builder(
-                  itemCount: groupsResponse.items.length,
-                  itemBuilder: (context, index) {
-                    final group = groupsResponse.items[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF87CEEB),
-                        child: Text(
-                          group.name.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      title: Text(group.name),
-                      subtitle: Text(group.description),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => AddExpensePage(group: group),
-                          ),
-                        );
-                      },
-                    );
-                  },
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon với background tròn nếu được chọn
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF4A90E2)
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
                 ),
-              );
-            },
-            loading: () => const CircularProgressIndicator(),
-            error: (error, stack) => Text('Lỗi: $error'),
+                child: Icon(
+                  icon,
+                  color: isSelected ? Colors.white : Colors.grey[500],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Label
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected
+                      ? const Color(0xFF4A90E2)
+                      : Colors.grey[600],
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
         ),
-      ],
+      ),
     );
   }
 }

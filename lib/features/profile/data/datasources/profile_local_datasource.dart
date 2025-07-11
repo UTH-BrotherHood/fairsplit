@@ -28,7 +28,7 @@ class ProfileLocalDatasource {
       'email': user.email, // nullable
       'phone': user.phone, // nullable
       'groups': user.groups,
-      'dateOfBirth': user.dateOfBirth.toIso8601String(),
+      'dateOfBirth': user.dateOfBirth?.toIso8601String(),
       'avatarUrl': user.avatarUrl, // nullable
       'verify': user.verify,
       'verificationType': user.verificationType,

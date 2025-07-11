@@ -8,6 +8,7 @@ import 'package:fairsplit/shared/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fairsplit/core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -57,6 +58,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void dispose() {
     _animationController.dispose();
+    // ignore: avoid_function_literals_in_foreach_calls
     controllers.forEach((controller) {
       controller.dispose();
     });
@@ -101,9 +103,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF1E1E2E),
-              const Color(0xFF0D0D14),
-              const Color(0xFF1A1A2E),
+              AppColors.primaryColor.withOpacity(0.1),
+              AppColors.backgroundColor,
+              AppColors.primaryColorLight.withOpacity(0.1),
             ],
           ),
         ),
@@ -115,7 +117,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               left: -50,
               child: _buildFloatingCircle(
                 size: 120,
-                color: const Color(0xFFE83D7B).withOpacity(0.1),
+                color: AppColors.primaryColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -124,7 +126,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               right: -30,
               child: _buildFloatingCircle(
                 size: 80,
-                color: const Color(0xFF6A3DE8).withOpacity(0.1),
+                color: AppColors.secondaryColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -133,7 +135,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               left: 50,
               child: _buildFloatingCircle(
                 size: 60,
-                color: const Color(0xFF3D7BE8).withOpacity(0.1),
+                color: AppColors.accentColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -180,12 +182,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Row(
       children: [
         const SizedBox(width: 16),
-        const Text(
+        Text(
           'Welcome Back',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textPrimaryColor,
             letterSpacing: 0.5,
           ),
         ),
@@ -196,35 +198,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget _buildLogoSection() {
     return Column(
       children: [
-        Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE83D7B).withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.account_balance_wallet,
-            color: Colors.white,
-            size: 45,
-          ),
-        ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'FairSplit',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.primaryColor,
             letterSpacing: 1.5,
           ),
         ),
@@ -233,7 +213,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           'Smart expense sharing made simple',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.textSecondaryColor,
             letterSpacing: 0.5,
           ),
         ),
@@ -257,6 +237,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
             controller: controllers[0],
             validator: (value) => Validators.validateEmail(value),
             prefixIcon: Icons.email_outlined,
+            style: TextStyle(color: AppColors.textPrimaryColor),
+            hintStyle: TextStyle(color: AppColors.textSecondaryColor),
           ),
         ),
 
@@ -273,12 +255,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
             controller: controllers[1],
             obscureText: _obscurePassword,
             prefixIcon: Icons.lock_outline,
+            style: TextStyle(color: AppColors.textPrimaryColor),
+            hintStyle: TextStyle(color: AppColors.textSecondaryColor),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: Colors.white.withOpacity(0.6),
+                color: AppColors.textSecondaryColor,
               ),
               onPressed: () {
                 setState(() {
@@ -298,7 +282,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             child: Text(
               'Forgot Password?',
               style: TextStyle(
-                color: const Color(0xFF6A3DE8),
+                color: AppColors.primaryColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -321,9 +305,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
         },
         text: 'SIGN IN',
         isLoading: _loading,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
-        ),
       ),
     );
   }
@@ -345,12 +326,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
               children: [
                 TextSpan(
                   text: 'Don\'t have an account? ',
-                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  style: TextStyle(color: AppColors.textSecondaryColor),
                 ),
-                const TextSpan(
+                TextSpan(
                   text: 'Sign Up',
                   style: TextStyle(
-                    color: Color(0xFFE83D7B),
+                    color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -380,13 +361,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : const Icon(Icons.login, color: Colors.white),
+            : Icon(Icons.login, color: AppColors.textOnPrimary),
         label: _loading
             ? const SizedBox.shrink()
-            : const Text(
+            : Text(
                 'Continue with Google',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textOnPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -407,14 +388,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   showSnackBar(
                     content: e.toString(),
                     context: context,
-                    backgroundColor: Colors.red,
+                    backgroundColor: AppColors.errorColor,
                   );
                 } finally {
                   if (mounted) setState(() => _loading = false);
                 }
               },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.primaryColor,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
