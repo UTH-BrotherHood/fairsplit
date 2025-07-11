@@ -51,7 +51,14 @@ class AppTheme {
         selectedItemColor: primaryColor,
         unselectedItemColor: textSecondaryColor,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: TextStyle(fontSize: 9, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       // Button themes

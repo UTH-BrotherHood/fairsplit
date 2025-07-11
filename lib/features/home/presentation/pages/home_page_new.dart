@@ -2,6 +2,9 @@ import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
+import 'package:fairsplit/features/groups/presentation/viewmodels/group_view_model.dart';
+import 'package:fairsplit/features/expenses/presentation/pages/add_expense_page.dart';
+import 'package:fairsplit/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,11 +46,11 @@ class PlaceholderScreen extends StatelessWidget {
 }
 
 final pages = [
-  const HomeScreen(), // Home
-  const AnalyticsScreen(), // Analytics
-  const ExpensesScreen(), // Expenses
-  const PlaceholderScreen(title: 'Groups'), // Groups
-  const PlaceholderScreen(title: 'Profile'), // Profile
+  const HomeScreen(),
+  const AnalyticsScreen(),
+  const ExpensesScreen(),
+  const PlaceholderScreen(title: 'Card'),
+  const PlaceholderScreen(title: 'Profile'),
 ];
 
 class HomePage extends ConsumerWidget {
@@ -112,14 +115,9 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(child: pages[selectedPage]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showSettingsMenu(context, ref),
-        backgroundColor: const Color(0xFF87CEEB),
-        child: const Icon(Icons.settings, color: Colors.white),
-      ),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
-        height: 90,
+        height: 80,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(25),
@@ -142,20 +140,20 @@ class HomePage extends ConsumerWidget {
               onTap: () => ref.read(selectedPageProvider.notifier).state = 0,
             ),
             _buildNavItem(
-              icon: Icons.analytics_rounded,
-              label: 'Analytics',
+              icon: Icons.account_balance_wallet_rounded,
+              label: 'Wallet',
               isSelected: selectedPage == 1,
               onTap: () => ref.read(selectedPageProvider.notifier).state = 1,
             ),
             _buildNavItem(
-              icon: Icons.receipt_long_rounded,
-              label: 'Expenses',
+              icon: Icons.send_rounded,
+              label: 'Send',
               isSelected: selectedPage == 2,
               onTap: () => ref.read(selectedPageProvider.notifier).state = 2,
             ),
             _buildNavItem(
-              icon: Icons.group_rounded,
-              label: 'Groups',
+              icon: Icons.credit_card_rounded,
+              label: 'Card',
               isSelected: selectedPage == 3,
               onTap: () => ref.read(selectedPageProvider.notifier).state = 3,
             ),
@@ -163,7 +161,7 @@ class HomePage extends ConsumerWidget {
               icon: Icons.person_rounded,
               label: 'Profile',
               isSelected: selectedPage == 4,
-              onTap: () => ref.read(selectedPageProvider.notifier).state = 4,
+              onTap: () => _showSettingsMenu(context, ref),
             ),
           ],
         ),
@@ -177,43 +175,34 @@ class HomePage extends ConsumerWidget {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon với background tròn nếu được chọn
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF4A90E2)
-                      : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: isSelected ? Colors.white : Colors.grey[500],
-                  size: 24,
-                ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF4A90E2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.grey[600],
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey[600],
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
-              const SizedBox(height: 4),
-              // Label
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected
-                      ? const Color(0xFF4A90E2)
-                      : Colors.grey[600],
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
