@@ -48,7 +48,7 @@ class GroupUser {
   final String id;
   final String username;
   final String email;
-  final String phone;
+  final String? phone;
   final String? avatarUrl;
   final String verify;
   final List<String> blockedUsers;
@@ -58,7 +58,7 @@ class GroupUser {
     required this.id,
     required this.username,
     required this.email,
-    required this.phone,
+    this.phone,
     this.avatarUrl,
     required this.verify,
     required this.blockedUsers,

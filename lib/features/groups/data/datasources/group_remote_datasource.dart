@@ -160,23 +160,25 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
     if (response.statusCode == 200) {
       final jsonMap = jsonDecode(response.body);
       return GroupMembersResponse(
-        message: jsonMap['message'],
-        result: (jsonMap['result'] as List)
+        message: jsonMap['message'] ?? '',
+        result: (jsonMap['result'] as List? ?? [])
             .map(
               (member) => GroupMember(
-                userId: member['userId'],
-                role: member['role'],
-                joinedAt: DateTime.parse(member['joinedAt']),
+                userId: member['userId'] ?? '',
+                role: member['role'] ?? '',
+                joinedAt: member['joinedAt'] != null
+                    ? DateTime.parse(member['joinedAt'])
+                    : DateTime.now(),
                 nickname: member['nickname'],
                 user: GroupUser(
-                  id: member['user']['_id'],
-                  username: member['user']['username'],
-                  email: member['user']['email'],
-                  phone: member['user']['phone'],
-                  avatarUrl: member['user']['avatarUrl'],
-                  verify: member['user']['verify'],
+                  id: member['user']?['_id'] ?? '',
+                  username: member['user']?['username'] ?? '',
+                  email: member['user']?['email'] ?? '',
+                  phone: member['user']?['phone'],
+                  avatarUrl: member['user']?['avatarUrl'],
+                  verify: member['user']?['verify'] ?? false,
                   blockedUsers: [],
-                  lastLoginTime: member['user']['lastLoginTime'] != null
+                  lastLoginTime: member['user']?['lastLoginTime'] != null
                       ? DateTime.parse(member['user']['lastLoginTime'])
                       : null,
                 ),
@@ -202,7 +204,7 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       body: jsonEncode(request.toJson()),
     );
 
-    if (response.statusCode != 201) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to add members: ${response.statusCode}');
     }
   }

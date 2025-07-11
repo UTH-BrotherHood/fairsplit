@@ -4,24 +4,66 @@ import 'package:fairsplit/features/groups/domain/entities/group.dart';
 import 'package:fairsplit/features/groups/presentation/viewmodels/group_detail_view_model.dart';
 import 'package:fairsplit/features/groups/presentation/pages/edit_group_page.dart';
 import 'package:fairsplit/features/groups/presentation/pages/group_members_page.dart';
+import 'package:fairsplit/features/shopping/presentation/pages/all_shopping_lists_page.dart';
 
-class GroupDetailPage extends ConsumerWidget {
+class GroupDetailPage extends ConsumerStatefulWidget {
   final String groupId;
   final String? groupName;
 
   const GroupDetailPage({super.key, required this.groupId, this.groupName});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupDetailState = ref.watch(groupDetailViewModelProvider(groupId));
+  ConsumerState<GroupDetailPage> createState() => _GroupDetailPageState();
+}
+
+class _GroupDetailPageState extends ConsumerState<GroupDetailPage>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(GroupDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh data if the groupId has changed
+    if (oldWidget.groupId != widget.groupId) {
+      ref
+          .read(groupDetailViewModelProvider(widget.groupId).notifier)
+          .refreshGroupDetails();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes back to foreground
+      ref
+          .read(groupDetailViewModelProvider(widget.groupId).notifier)
+          .refreshGroupDetails();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groupDetailState = ref.watch(
+      groupDetailViewModelProvider(widget.groupId),
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: groupDetailState.when(
           data: (groupResponse) => Text(groupResponse.data.name),
-          loading: () => Text(groupName ?? 'Loading...'),
-          error: (_, __) => Text(groupName ?? 'Error'),
+          loading: () => Text(widget.groupName ?? 'Loading...'),
+          error: (_, __) => Text(widget.groupName ?? 'Error'),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -31,7 +73,7 @@ class GroupDetailPage extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               ref
-                  .read(groupDetailViewModelProvider(groupId).notifier)
+                  .read(groupDetailViewModelProvider(widget.groupId).notifier)
                   .refreshGroupDetails();
             },
           ),
@@ -48,7 +90,7 @@ class GroupDetailPage extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           await ref
-              .read(groupDetailViewModelProvider(groupId).notifier)
+              .read(groupDetailViewModelProvider(widget.groupId).notifier)
               .refreshGroupDetails();
         },
         child: groupDetailState.when(
@@ -73,7 +115,7 @@ class GroupDetailPage extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // Quick Actions
-          _buildQuickActions(context, group),
+          _buildQuickActions(context, ref, group),
 
           const SizedBox(height: 20),
 
@@ -130,7 +172,7 @@ class GroupDetailPage extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () {
               ref
-                  .read(groupDetailViewModelProvider(groupId).notifier)
+                  .read(groupDetailViewModelProvider(widget.groupId).notifier)
                   .refreshGroupDetails();
             },
             icon: const Icon(Icons.refresh),
@@ -250,7 +292,7 @@ class GroupDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, Group group) {
+  Widget _buildQuickActions(BuildContext context, WidgetRef ref, Group group) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -270,11 +312,7 @@ class GroupDetailPage extends ConsumerWidget {
                 icon: Icons.add,
                 label: 'Thêm chi phí',
                 color: const Color(0xFF4A90E2),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Chức năng đang phát triển')),
-                  );
-                },
+                onTap: () => _handleAddExpense(context, ref, group.id),
               ),
             ),
             const SizedBox(width: 12),
@@ -283,13 +321,20 @@ class GroupDetailPage extends ConsumerWidget {
                 icon: Icons.group,
                 label: 'Quản lý thành viên',
                 color: const Color(0xFF50C878),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  // Navigate to GroupMembersPage and wait for result
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => GroupMembersPage(groupId: groupId),
+                      builder: (context) => GroupMembersPage(groupId: group.id),
                     ),
                   );
+                  // Refresh group details when returning
+                  ref
+                      .read(
+                        groupDetailViewModelProvider(widget.groupId).notifier,
+                      )
+                      .refreshGroupDetails();
                 },
               ),
             ),
@@ -384,13 +429,18 @@ class GroupDetailPage extends ConsumerWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GroupMembersPage(groupId: groupId),
+                    builder: (context) =>
+                        GroupMembersPage(groupId: widget.groupId),
                   ),
                 );
+                // Refresh group details when returning
+                ref
+                    .read(groupDetailViewModelProvider(widget.groupId).notifier)
+                    .refreshGroupDetails();
               },
               child: const Text('Xem tất cả'),
             ),
@@ -412,14 +462,20 @@ class GroupDetailPage extends ConsumerWidget {
               if (group.members.length > 3) ...[
                 const Divider(),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            GroupMembersPage(groupId: groupId),
+                            GroupMembersPage(groupId: widget.groupId),
                       ),
                     );
+                    // Refresh group details when returning
+                    ref
+                        .read(
+                          groupDetailViewModelProvider(widget.groupId).notifier,
+                        )
+                        .refreshGroupDetails();
                   },
                   child: Text(
                     'Xem thêm ${group.members.length - 3} thành viên',
@@ -536,6 +592,32 @@ class GroupDetailPage extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleAddExpense(
+    BuildContext context,
+    WidgetRef ref,
+    String groupId,
+  ) async {
+    // Get current group details to get the group name
+    final groupDetailState = ref.read(groupDetailViewModelProvider(groupId));
+    final groupName = groupDetailState.when(
+      data: (groupResponse) => groupResponse.data.name,
+      loading: () => 'Loading...',
+      error: (_, __) => 'Group',
+    );
+
+    // Navigate to AllShoppingListsPage and show create form for this group
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AllShoppingListsPage(
+          initialGroupId: groupId,
+          initialGroupName: groupName,
+          showCreateForm: true,
+        ),
+      ),
+    );
+  }
+
   void _showGroupOptionsMenu(BuildContext context, WidgetRef ref, Group group) {
     showModalBottomSheet(
       context: context,
@@ -560,7 +642,9 @@ class GroupDetailPage extends ConsumerWidget {
                 // Refresh group details if group was updated
                 if (result == true) {
                   ref
-                      .read(groupDetailViewModelProvider(groupId).notifier)
+                      .read(
+                        groupDetailViewModelProvider(widget.groupId).notifier,
+                      )
                       .refreshGroupDetails();
                 }
               },
@@ -568,14 +652,19 @@ class GroupDetailPage extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.group),
               title: const Text('Quản lý thành viên'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GroupMembersPage(groupId: groupId),
+                    builder: (context) =>
+                        GroupMembersPage(groupId: widget.groupId),
                   ),
                 );
+                // Refresh group details when returning
+                ref
+                    .read(groupDetailViewModelProvider(widget.groupId).notifier)
+                    .refreshGroupDetails();
               },
             ),
             ListTile(
@@ -640,7 +729,7 @@ class GroupDetailPage extends ConsumerWidget {
             onPressed: () async {
               try {
                 await ref
-                    .read(groupDetailViewModelProvider(groupId).notifier)
+                    .read(groupDetailViewModelProvider(widget.groupId).notifier)
                     .deleteGroup();
                 if (context.mounted) {
                   Navigator.pop(context); // Close dialog
