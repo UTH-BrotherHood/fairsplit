@@ -188,6 +188,7 @@ class _ShoppingListDetailPageState
                 Row(
                   children: [
                     Expanded(
+                      flex: 1,
                       child: _buildFinanceCard(
                         'Đã mua',
                         '${shoppingList.items.where((item) => item.isPurchased).length}/${shoppingList.items.length}',
@@ -197,6 +198,7 @@ class _ShoppingListDetailPageState
                     ),
                     const SizedBox(width: 8),
                     Expanded(
+                      flex: 1,
                       child: _buildFinanceCard(
                         'Còn lại',
                         '${shoppingList.items.where((item) => !item.isPurchased).length} mặt hàng',
@@ -206,6 +208,7 @@ class _ShoppingListDetailPageState
                     ),
                     const SizedBox(width: 8),
                     Expanded(
+                      flex: 1,
                       child: _buildFinanceCard(
                         'Tổng cần mua',
                         '${shoppingList.items.length} mặt hàng',
@@ -770,6 +773,8 @@ class _ShoppingListDetailPageState
     Color color,
   ) {
     return Container(
+      width: double.infinity,
+      height: 80,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
@@ -778,6 +783,7 @@ class _ShoppingListDetailPageState
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
@@ -786,19 +792,24 @@ class _ShoppingListDetailPageState
               fontWeight: FontWeight.w500,
               color: color,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
           Text(
             amount,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: color,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           Text(
             subtitle,
             style: TextStyle(fontSize: 10, color: color.withOpacity(0.7)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -847,7 +858,7 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 color: const Color(0xFF87CEEB).withOpacity(0.05),
                 borderRadius: const BorderRadius.only(
@@ -862,35 +873,31 @@ class _AddItemsDialogState extends State<_AddItemsDialog> {
                     color: Color(0xFF87CEEB),
                     size: 24,
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Thêm mặt hàng',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF87CEEB).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      '${_items.length} mặt hàng',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF87CEEB),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Thêm mặt hàng',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_items.length} mặt hàng',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF87CEEB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),

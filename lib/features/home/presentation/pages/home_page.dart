@@ -1,9 +1,9 @@
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
-import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/groups_screen.dart';
 import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
 import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
+import 'package:fairsplit/features/expenses/presentation/pages/all_bills_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,7 +45,7 @@ class PlaceholderScreen extends StatelessWidget {
 
 final pages = [
   const HomeScreen(), // Home
-  const AnalyticsScreen(), // Analytics
+  const AllBillsPage(), // Bills - now goes directly to All Bills
   const ExpensesScreen(), // Expenses
   const GroupsScreen(), // Groups
   const ProfilePage(),
@@ -102,8 +102,8 @@ class HomePage extends ConsumerWidget {
               onTap: () => ref.read(selectedPageProvider.notifier).state = 0,
             ),
             _buildNavItem(
-              icon: Icons.analytics_rounded,
-              label: 'Analytics',
+              icon: Icons.receipt_long_rounded,
+              label: 'Bills',
               isSelected: selectedPage == 1,
               onTap: () => ref.read(selectedPageProvider.notifier).state = 1,
             ),

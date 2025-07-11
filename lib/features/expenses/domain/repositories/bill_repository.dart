@@ -13,4 +13,6 @@ abstract class BillRepository {
     CreatePaymentRequest request,
   );
   Future<void> deletePayment(String billId, String paymentId);
+  Future<BillResponse> updateBill(String billId, CreateBillRequest request);
+  Future<void> deleteBill(String billId);
 }
