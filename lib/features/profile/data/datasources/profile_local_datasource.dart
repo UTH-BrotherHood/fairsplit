@@ -53,7 +53,6 @@ class ProfileLocalDatasource {
           : null,
       'createdAt': user.createdAt.toIso8601String(),
       'updatedAt': user.updatedAt.toIso8601String(),
-      // Nếu có thể null, nhớ check
       'lastLoginTime': user.lastLoginTime?.toIso8601String(),
     };
   }
@@ -65,7 +64,9 @@ class ProfileLocalDatasource {
       email: map['email'],
       phone: map['phone'],
       groups: (map['groups'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      dateOfBirth: DateTime.parse(map['dateOfBirth']),
+      dateOfBirth: map['dateOfBirth'] != null
+          ? DateTime.tryParse(map['dateOfBirth'])
+          : null,
       avatarUrl: map['avatarUrl'],
       verify: map['verify'] ?? 'unverified',
       verificationType: map['verificationType'] ?? 'email',

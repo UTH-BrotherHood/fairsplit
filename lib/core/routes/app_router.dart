@@ -3,6 +3,7 @@ import 'package:fairsplit/features/auth/presentation/views/login_page.dart';
 import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
 import 'package:fairsplit/features/home/presentation/pages/home_page.dart';
 import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
+import 'package:fairsplit/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:fairsplit/features/setting/presentation/pages/settings_page.dart';
 import 'package:fairsplit/features/shopping/presentation/pages/group_detail_page.dart';
 import 'package:fairsplit/features/shopping/presentation/pages/shopping_list_detail_page.dart';
@@ -30,6 +31,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => ProfilePageWrapper(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfilePageWrapper(),
       ),
       GoRoute(path: '/settings', builder: (context, state) => SettingsPage()),
 
@@ -63,5 +68,16 @@ class ProfilePageWrapper extends ConsumerWidget {
     final user = ref.watch(authViewModelProvider);
     if (user == null) return const SizedBox();
     return ProfilePage();
+  }
+}
+
+class EditProfilePageWrapper extends ConsumerWidget {
+  const EditProfilePageWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authViewModelProvider);
+    if (user == null) return const SizedBox();
+    return EditProfilePage(user: user);
   }
 }

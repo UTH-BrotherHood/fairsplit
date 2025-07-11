@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/auth/domain/entities/auth.dart';
 import 'package:fairsplit/features/profile/data/datasources/profile_remote_datasource.dart';
 import 'package:fairsplit/features/profile/data/datasources/profile_local_datasource.dart';
+import 'package:fairsplit/features/profile/data/models/update_profile_request.dart';
 import 'package:http/http.dart' as http;
 
 // Provider cho repository (inject dependences)
@@ -20,10 +21,10 @@ class ProfileViewModel extends StateNotifier<AsyncValue<User>> {
     fetchProfile();
   }
 
-  Future<void> fetchProfile() async {
+  Future<void> fetchProfile({bool forceRemote = false}) async {
     state = const AsyncLoading();
     try {
-      final user = await repository.getProfile();
+      final user = await repository.getProfile(forceRemote: forceRemote);
       print('[ProfileViewModel] fetchProfile success: $user');
       state = AsyncData(user);
     } catch (e, st) {
@@ -32,13 +33,16 @@ class ProfileViewModel extends StateNotifier<AsyncValue<User>> {
     }
   }
 
-  Future<void> updateProfile() async {
-    state = const AsyncLoading();
+  Future<void> updateProfile(UpdateProfileRequest request) async {
     try {
-      final user = await repository.updateProfile();
-      state = AsyncData(user);
+      await repository.updateProfile(request);
+      print('[ProfileViewModel] updateProfile success');
+      // Sau khi update, luôn fetch lại từ server để cập nhật giao diện
+      await fetchProfile(forceRemote: true);
     } catch (e, st) {
+      print('[ProfileViewModel] updateProfile error: $e');
       state = AsyncError(e, st);
+      rethrow; // Re-throw to let the UI handle the error
     }
   }
 }

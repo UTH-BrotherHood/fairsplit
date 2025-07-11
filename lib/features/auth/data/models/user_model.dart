@@ -18,6 +18,7 @@ class UserModel {
   final TwitterModel? twitter;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastLoginTime;
 
   UserModel({
     required this.id,
@@ -25,12 +26,11 @@ class UserModel {
     this.email,
     this.phone,
     this.groups = const [],
-    required this.dateOfBirth,
+    this.dateOfBirth,
     this.avatarUrl,
     required this.verify,
     required this.verificationType,
     this.friends = const [],
-    // this.blockedUsers = const [],
     this.preferences,
     this.privacySettings,
     this.google,
@@ -38,19 +38,37 @@ class UserModel {
     this.twitter,
     required this.createdAt,
     required this.updatedAt,
+    this.lastLoginTime,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Handle MongoDB ObjectId format
+    String parseId(dynamic idValue) {
+      if (idValue is Map && idValue.containsKey('\$oid')) {
+        return idValue['\$oid'].toString();
+      }
+      return idValue.toString();
+    }
+
+    // Handle MongoDB Date format
+    DateTime? parseDate(dynamic dateValue) {
+      if (dateValue == null) return null;
+      if (dateValue is Map && dateValue.containsKey('\$date')) {
+        return DateTime.parse(dateValue['\$date']);
+      }
+      if (dateValue is String) {
+        return DateTime.parse(dateValue);
+      }
+      return null;
+    }
+
     return UserModel(
-      id: (json['_id'] ?? '').toString(),
-      username: json['username'],
+      id: parseId(json['_id']),
+      username: json['username'] ?? '',
       email: json['email'],
       phone: json['phone'],
-      groups:
-          (json['groups'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      dateOfBirth: json['dateOfBirth'] != null
-          ? DateTime.parse(json['dateOfBirth'])
-          : null,
+      groups: (json['groups'] as List?)?.map((e) => parseId(e)).toList() ?? [],
+      dateOfBirth: parseDate(json['dateOfBirth']),
       avatarUrl: json['avatarUrl'],
       verify: json['verify'] ?? 'unverified',
       verificationType: json['verificationType'] ?? 'email',
@@ -73,8 +91,9 @@ class UserModel {
       twitter: json['twitter'] != null
           ? TwitterModel.fromJson(Map<String, dynamic>.from(json['twitter']))
           : null,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: parseDate(json['createdAt']) ?? DateTime.now(),
+      updatedAt: parseDate(json['updatedAt']) ?? DateTime.now(),
+      lastLoginTime: parseDate(json['lastLoginTime']),
     );
   }
 
@@ -96,6 +115,7 @@ class UserModel {
     twitter: twitter?.toEntity(),
     createdAt: createdAt,
     updatedAt: updatedAt,
+    lastLoginTime: lastLoginTime,
   );
 }
 
