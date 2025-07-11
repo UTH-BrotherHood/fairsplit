@@ -115,7 +115,7 @@ class _ShoppingListDetailPageState
   Widget _buildShoppingListContent(ShoppingList shoppingList) {
     return Column(
       children: [
-        // List info section
+        // List info section with integrated financial summary
         _buildListInfo(shoppingList),
 
         // Items section
@@ -146,30 +146,77 @@ class _ShoppingListDetailPageState
             style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildInfoCard(
-                icon: Icons.shopping_cart,
-                title: 'Mặt hàng',
-                value: '${shoppingList.items.length}',
-                subtitle:
-                    '${shoppingList.items.where((item) => item.isPurchased).length} đã mua',
-              ),
-              const SizedBox(width: 12),
-              _buildInfoCard(
-                icon: Icons.monetization_on,
-                title: 'Dự kiến',
-                value: '${shoppingList.totalEstimatedPrice.toStringAsFixed(0)}',
-                subtitle: 'VND',
-              ),
-              const SizedBox(width: 12),
-              _buildInfoCard(
-                icon: Icons.check_circle,
-                title: 'Thực tế',
-                value: '${shoppingList.totalActualPrice.toStringAsFixed(0)}',
-                subtitle: 'VND',
-              ),
-            ],
+
+          // Combined Shopping Info Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.shopping_cart,
+                      color: const Color(0xFF4A90E2),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Thông tin mua sắm',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFinanceCard(
+                        'Đã mua',
+                        '${shoppingList.items.where((item) => item.isPurchased).length}/${shoppingList.items.length}',
+                        _formatCurrency(_calculateActualTotal(shoppingList)),
+                        Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildFinanceCard(
+                        'Còn lại',
+                        '${shoppingList.items.where((item) => !item.isPurchased).length} mặt hàng',
+                        _formatCurrency(_calculateRemainingTotal(shoppingList)),
+                        Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildFinanceCard(
+                        'Tổng cần mua',
+                        '${shoppingList.items.length} mặt hàng',
+                        _formatCurrency(_calculateEstimatedTotal(shoppingList)),
+                        const Color(0xFF4A90E2),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           if (shoppingList.tags.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -201,49 +248,6 @@ class _ShoppingListDetailPageState
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required String subtitle,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 24, color: const Color(0xFF87CEEB)),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(color: Colors.grey[500], fontSize: 10),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -434,25 +438,26 @@ class _ShoppingListDetailPageState
                     ],
                   ),
                 ),
-                if (item.isPurchased)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Đã mua',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: item.isPurchased
+                        ? Colors.green.withOpacity(0.2)
+                        : Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    item.isPurchased ? 'Đã hoàn thành' : 'Chưa hoàn thành',
+                    style: TextStyle(
+                      color: item.isPurchased ? Colors.green : Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -714,6 +719,89 @@ class _ShoppingListDetailPageState
           ],
         );
       },
+    );
+  }
+
+  double _calculateActualTotal(ShoppingList shoppingList) {
+    return shoppingList.items.where((item) => item.isPurchased).fold(0.0, (
+      sum,
+      item,
+    ) {
+      final price = item.actualPrice ?? item.estimatedPrice ?? 0.0;
+      return sum + price;
+    });
+  }
+
+  double _calculateEstimatedTotal(ShoppingList shoppingList) {
+    return shoppingList.items.fold(0.0, (sum, item) {
+      final price = item.estimatedPrice ?? 0.0;
+      return sum + price;
+    });
+  }
+
+  double _calculateRemainingTotal(ShoppingList shoppingList) {
+    return shoppingList.items.where((item) => !item.isPurchased).fold(0.0, (
+      sum,
+      item,
+    ) {
+      final price = item.estimatedPrice ?? 0.0;
+      return sum + price;
+    });
+  }
+
+  String _formatCurrency(double amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M VND';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}K VND';
+    } else {
+      return '${amount.toStringAsFixed(0)} VND';
+    }
+  }
+
+  // Removed unused _buildShoppingListHeader method
+
+  // Removed unused _buildFinancialSummary method
+
+  Widget _buildFinanceCard(
+    String title,
+    String subtitle,
+    String amount,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 10, color: color.withOpacity(0.7)),
+          ),
+        ],
+      ),
     );
   }
 }
