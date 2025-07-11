@@ -9,6 +9,11 @@ abstract class BillRemoteDataSource {
   Future<BillsResponseModel> getBills(String groupId);
   Future<BillResponseModel> getBillDetail(String billId);
   Future<BillResponseModel> createBill(CreateBillRequest request);
+  Future<BillResponseModel> updateBill(
+    String billId,
+    CreateBillRequest request,
+  );
+  Future<void> deleteBill(String billId);
   Future<PaymentsResponseModel> getBillPayments(String billId);
   Future<BillResponseModel> addPayment(
     String billId,
@@ -87,6 +92,46 @@ class BillRemoteDataSourceImpl implements BillRemoteDataSource {
   }
 
   @override
+  Future<BillResponseModel> updateBill(
+    String billId,
+    CreateBillRequest request,
+  ) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+
+    final response = await client.patch(
+      Uri.parse('${ApiConstants.baseUrl}/bills/$billId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return BillResponseModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to update bill: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<void> deleteBill(String billId) async {
+    final accessToken = await AuthLocalDataSource().getAccessToken();
+
+    final response = await client.delete(
+      Uri.parse('${ApiConstants.baseUrl}/bills/$billId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete bill: ${response.statusCode}');
+    }
+  }
+
+  @override
   Future<PaymentsResponseModel> getBillPayments(String billId) async {
     final accessToken = await AuthLocalDataSource().getAccessToken();
 
@@ -142,7 +187,7 @@ class BillRemoteDataSourceImpl implements BillRemoteDataSource {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return PaymentModel.fromJson(data['result']);
+      return PaymentModel.fromJson(data['data']);
     } else {
       throw Exception('Failed to get payment detail: ${response.statusCode}');
     }
@@ -167,7 +212,7 @@ class BillRemoteDataSourceImpl implements BillRemoteDataSource {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return PaymentModel.fromJson(data['result']);
+      return PaymentModel.fromJson(data['data']);
     } else {
       throw Exception('Failed to update payment: ${response.statusCode}');
     }
