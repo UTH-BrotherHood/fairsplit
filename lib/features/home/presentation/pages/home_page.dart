@@ -2,6 +2,7 @@ import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/groups_screen.dart';
 import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
+import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
 import 'package:fairsplit/features/expenses/presentation/pages/all_bills_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +48,8 @@ final pages = [
   const AllBillsPage(), // Bills - now goes directly to All Bills
   const ExpensesScreen(), // Expenses
   const GroupsScreen(), // Groups
-  const PlaceholderScreen(title: 'Profile'), // Profile
+  const ProfilePage(),
+  // const PlaceholderScreen(title: 'Profile'), // Profile
 ];
 
 class HomePage extends ConsumerWidget {
