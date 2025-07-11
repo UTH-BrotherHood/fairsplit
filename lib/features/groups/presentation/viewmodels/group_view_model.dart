@@ -45,6 +45,35 @@ class GroupViewModel extends StateNotifier<AsyncValue<GroupsResponse>> {
       state = AsyncError(e, st);
     }
   }
+
+  Future<void> updateGroup(String groupId, UpdateGroupRequest request) async {
+    try {
+      await repository.updateGroup(groupId, request);
+      // Refresh the groups list after updating
+      await getMyGroups();
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    try {
+      await repository.deleteGroup(groupId);
+      // Refresh the groups list after deleting
+      await getMyGroups();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+      rethrow; // Re-throw to let the UI handle the error
+    }
+  }
+
+  Future<UserSearchResponse> searchUsers(String query) async {
+    try {
+      return await repository.searchUsers(query);
+    } catch (e) {
+      throw Exception('Failed to search users: $e');
+    }
+  }
 }
 
 // ViewModel provider

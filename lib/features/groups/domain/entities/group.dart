@@ -199,11 +199,16 @@ class CreateGroupRequest {
 class GroupMemberInput {
   final String userId;
   final String? nickname;
+  final String? role;
 
-  GroupMemberInput({required this.userId, this.nickname});
+  GroupMemberInput({required this.userId, this.nickname, this.role});
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId, if (nickname != null) 'nickname': nickname};
+    return {
+      'userId': userId,
+      if (nickname != null) 'nickname': nickname,
+      if (role != null) 'role': role,
+    };
   }
 }
 
@@ -227,6 +232,87 @@ class GroupSettingsInput {
         'allowMembersAddList': allowMembersAddList,
       if (defaultSplitMethod != null) 'defaultSplitMethod': defaultSplitMethod,
       if (currency != null) 'currency': currency,
+    };
+  }
+}
+
+// User search entities
+class UserSearchResult {
+  final String id;
+  final String username;
+  final String email;
+  final String phone;
+  final String? avatarUrl;
+  final String verify;
+
+  UserSearchResult({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.phone,
+    this.avatarUrl,
+    required this.verify,
+  });
+}
+
+class UserSearchResponse {
+  final String message;
+  final List<UserSearchResult> users;
+
+  UserSearchResponse({required this.message, required this.users});
+}
+
+// Member management entities
+class GroupMembersResponse {
+  final String message;
+  final List<GroupMember> result;
+
+  GroupMembersResponse({required this.message, required this.result});
+}
+
+class AddMembersRequest {
+  final List<GroupMemberInput> members;
+
+  AddMembersRequest({required this.members});
+
+  Map<String, dynamic> toJson() {
+    return {'members': members.map((m) => m.toJson()).toList()};
+  }
+}
+
+class UpdateMemberRequest {
+  final String? role;
+  final String? nickname;
+
+  UpdateMemberRequest({this.role, this.nickname});
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (role != null) 'role': role,
+      if (nickname != null) 'nickname': nickname,
+    };
+  }
+}
+
+class UpdateGroupRequest {
+  final String? name;
+  final String? description;
+  final String? avatarUrl;
+  final GroupSettingsInput? settings;
+
+  UpdateGroupRequest({
+    this.name,
+    this.description,
+    this.avatarUrl,
+    this.settings,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      if (settings != null) 'settings': settings!.toJson(),
     };
   }
 }

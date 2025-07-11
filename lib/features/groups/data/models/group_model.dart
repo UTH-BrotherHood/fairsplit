@@ -40,8 +40,12 @@ class GroupModel {
               ?.map((member) => GroupMemberModel.fromJson(member))
               .toList() ??
           [],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
       isArchived: json['isArchived'] ?? false,
       settings: GroupSettingsModel.fromJson(json['settings'] ?? {}),
       bills:
@@ -94,7 +98,9 @@ class GroupMemberModel {
     return GroupMemberModel(
       userId: json['userId'] ?? '',
       role: json['role'] ?? '',
-      joinedAt: DateTime.parse(json['joinedAt']),
+      joinedAt: json['joinedAt'] != null
+          ? DateTime.parse(json['joinedAt'])
+          : DateTime.now(),
       nickname: json['nickname'],
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
@@ -534,7 +540,7 @@ class GroupResponseModel {
   factory GroupResponseModel.fromJson(Map<String, dynamic> json) {
     return GroupResponseModel(
       message: json['message'] ?? '',
-      data: GroupModel.fromJson(json['data']),
+      data: GroupModel.fromJson(json['result'] ?? {}),
     );
   }
 

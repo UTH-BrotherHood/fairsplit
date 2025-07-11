@@ -1,7 +1,8 @@
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
-import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
+import 'package:fairsplit/features/home/presentation/widgets/groups_screen.dart';
+import 'package:fairsplit/features/groups/presentation/pages/create_group_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,8 +46,8 @@ final pages = [
   const HomeScreen(), // Home
   const AnalyticsScreen(), // Analytics
   const ExpensesScreen(), // Expenses
-  const PlaceholderScreen(title: 'Groups'), // Groups
-  const ProfilePage(), // Profile
+  const GroupsScreen(), // Groups
+  const PlaceholderScreen(title: 'Profile'), // Profile
 ];
 
 class HomePage extends ConsumerWidget {
@@ -58,6 +59,22 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(child: pages[selectedPage]),
+      floatingActionButton:
+          selectedPage ==
+              3 // Only show on Groups tab
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateGroupPage(),
+                  ),
+                );
+              },
+              backgroundColor: const Color(0xFF4A90E2),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
         height: 90,
