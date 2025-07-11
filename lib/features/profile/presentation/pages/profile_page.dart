@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/profile/presentation/viewmodels/profile_view_model.dart';
-import 'package:go_router/go_router.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -11,201 +10,359 @@ class ProfilePage extends ConsumerWidget {
     final userAsync = ref.watch(profileViewModelProvider);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              context.push('/settings');
-            },
-          ),
-        ],
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
         data: (user) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
-                // Avatar, username, email, verify
-                Center(
+                // Header Card with Avatar and Basic Info
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundImage:
-                            user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                            ? NetworkImage(user.avatarUrl!)
-                            : null,
-                        child:
-                            (user.avatarUrl == null || user.avatarUrl!.isEmpty)
-                            ? Icon(Icons.person, size: 48)
-                            : null,
+                      // Avatar with gradient border
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blue.shade400,
+                              Colors.purple.shade400,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(3),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 47,
+                            backgroundImage:
+                                user.avatarUrl != null &&
+                                    user.avatarUrl!.isNotEmpty
+                                ? NetworkImage(user.avatarUrl!)
+                                : null,
+                            child:
+                                (user.avatarUrl == null ||
+                                    user.avatarUrl!.isEmpty)
+                                ? Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.grey[400],
+                                  )
+                                : null,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
+
+                      // Username
                       Text(
                         user.username,
                         style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
                       ),
+
+                      // Email
                       if (user.email != null && user.email!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             user.email!,
-                            style: TextStyle(color: Colors.grey[700]),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
                           ),
                         ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            user.verify == 'verified'
-                                ? Icons.verified
-                                : Icons.verified_outlined,
+
+                      const SizedBox(height: 16),
+
+                      // Verification Status
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: user.verify == 'verified'
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
                             color: user.verify == 'verified'
-                                ? Colors.blue
-                                : Colors.grey,
-                            size: 20,
+                                ? Colors.green.withOpacity(0.3)
+                                : Colors.orange.withOpacity(0.3),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            user.verify == 'verified'
-                                ? 'Verified'
-                                : 'Unverified',
-                            style: TextStyle(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              user.verify == 'verified'
+                                  ? Icons.verified
+                                  : Icons.schedule,
                               color: user.verify == 'verified'
-                                  ? Colors.blue
-                                  : Colors.grey,
-                              fontWeight: FontWeight.w600,
+                                  ? Colors.green
+                                  : Colors.orange,
+                              size: 18,
                             ),
-                          ),
-                          if (user.verificationType.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Chip(
-                              label: Text(user.verificationType),
-                              labelStyle: const TextStyle(fontSize: 12),
-                              backgroundColor: Colors.blue[50],
+                            const SizedBox(width: 6),
+                            Text(
+                              user.verify == 'verified'
+                                  ? 'Verified'
+                                  : 'Pending Verification',
+                              style: TextStyle(
+                                color: user.verify == 'verified'
+                                    ? Colors.green[700]
+                                    : Colors.orange[700],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
+
+                      // Verification Type
+                      if (user.verificationType.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            user.verificationType,
+                            style: TextStyle(
+                              color: Colors.blue[700],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
 
-                // Thông tin cá nhân
-                _ProfileSection(
-                  title: "Personal Info",
+                const SizedBox(height: 20),
+
+                // Personal Info Section
+                _ModernProfileSection(
+                  title: "Personal Information",
+                  icon: Icons.person_outline,
                   children: [
-                    _ProfileField(label: "ID", value: user.id),
-                    _ProfileField(
+                    _ModernProfileField(
+                      icon: Icons.badge_outlined,
+                      label: "User ID",
+                      value: user.id,
+                    ),
+                    _ModernProfileField(
+                      icon: Icons.cake_outlined,
                       label: "Date of Birth",
                       value: user.dateOfBirth != null
                           ? _formatDate(user.dateOfBirth)
-                          : "-",
+                          : "Not provided",
                     ),
-                    _ProfileField(label: "Phone", value: user.phone ?? "-"),
-                    // _ProfileField(
-                    //   label: "Groups",
-                    //   value: user.groups.isNotEmpty
-                    //       ? user.groups.join(", ")
-                    //       : "-",
-                    // ),
-                    _ProfileField(
-                      label: "Account Created",
+
+                    _ModernProfileField(
+                      icon: Icons.calendar_today_outlined,
+                      label: "Member Since",
                       value: _formatDate(user.createdAt),
                     ),
                   ],
                 ),
 
-                // Privacy settings
+                // Privacy Settings
                 if (user.privacySettings != null) ...[
                   const SizedBox(height: 16),
-                  _ProfileSection(
+                  _ModernProfileSection(
                     title: "Privacy Settings",
+                    icon: Icons.privacy_tip_outlined,
                     children: [
-                      _ProfileField(
+                      _ModernProfileField(
+                        icon: Icons.visibility_outlined,
                         label: "Profile Visibility",
-                        value: user.privacySettings!.profileVisibility ?? "-",
+                        value:
+                            user.privacySettings!.profileVisibility ??
+                            "Not set",
                       ),
-                      _ProfileField(
+                      _ModernProfileField(
+                        icon: Icons.people_outline,
                         label: "Friend Requests",
-                        value: user.privacySettings!.friendRequests ?? "-",
+                        value:
+                            user.privacySettings!.friendRequests ?? "Not set",
                       ),
                     ],
                   ),
                 ],
 
-                // Social
+                // Connected Accounts
                 if (user.google != null ||
                     user.facebook != null ||
                     user.twitter != null) ...[
                   const SizedBox(height: 16),
-                  _ProfileSection(
+                  _ModernProfileSection(
                     title: "Connected Accounts",
+                    icon: Icons.link_outlined,
                     children: [
                       if (user.google != null)
-                        _ProfileField(
+                        _ModernProfileField(
+                          icon: Icons.g_mobiledata,
                           label: "Google",
                           value: user.google!.googleId,
+                          valueColor: Colors.red,
                         ),
                       if (user.facebook != null)
-                        _ProfileField(
+                        _ModernProfileField(
+                          icon: Icons.facebook,
                           label: "Facebook",
                           value: user.facebook!.facebookId,
+                          valueColor: Colors.blue,
                         ),
                       if (user.twitter != null)
-                        _ProfileField(
+                        _ModernProfileField(
+                          icon: Icons.alternate_email,
                           label: "Twitter",
                           value: user.twitter!.twitterId,
+                          valueColor: Colors.lightBlue,
                         ),
                     ],
                   ),
                 ],
 
-                // Friends & Blocked users
+                // Social Stats
                 const SizedBox(height: 16),
-                _ProfileSection(
+                _ModernProfileSection(
                   title: "Social",
+                  icon: Icons.groups_outlined,
                   children: [
-                    _ProfileField(
+                    _ModernProfileField(
+                      icon: Icons.group_outlined,
                       label: "Friends",
-                      value: user.friends.length.toString(),
+                      value: "${user.friends.length} friends",
+                      valueColor: Colors.green,
                     ),
                   ],
                 ),
 
-                // Preferences (hiển thị dạng json nếu có)
+                // Preferences
                 if (user.preferences != null &&
                     user.preferences!.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _ProfileSection(
+                  _ModernProfileSection(
                     title: "Preferences",
+                    icon: Icons.tune_outlined,
                     children: [
                       ...user.preferences!.entries.map(
-                        (e) => _ProfileField(
+                        (e) => _ModernProfileField(
+                          icon: Icons.settings_outlined,
                           label: e.key,
-                          value: e.value?.toString() ?? '-',
+                          value: e.value?.toString() ?? 'Not set',
                         ),
                       ),
                     ],
                   ),
                 ],
 
-                // Last login time
+                // Last Login
                 if (user.lastLoginTime != null) ...[
                   const SizedBox(height: 16),
-                  _ProfileField(
-                    label: "Last Login",
-                    value: _formatDate(user.lastLoginTime!),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.access_time,
+                            color: Colors.purple[600],
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Last Login",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _formatDate(user.lastLoginTime!),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
+
+                const SizedBox(height: 20),
               ],
             ),
           );
@@ -215,48 +372,117 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-/// Section widget
-class _ProfileSection extends StatelessWidget {
+/// Modern Section Widget
+class _ModernProfileSection extends StatelessWidget {
   final String title;
+  final IconData icon;
   final List<Widget> children;
-  const _ProfileSection({required this.title, required this.children});
+
+  const _ModernProfileSection({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 4),
-        ...children,
-      ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: Colors.blue[600], size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
     );
   }
 }
 
-/// Field widget
-class _ProfileField extends StatelessWidget {
+/// Modern Field Widget
+class _ModernProfileField extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _ProfileField({required this.label, required this.value});
+  final Color? valueColor;
+
+  const _ModernProfileField({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          SizedBox(
-            width: 130,
-            child: Text(label, style: const TextStyle(color: Colors.black87)),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Colors.grey[600], size: 18),
           ),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: valueColor ?? Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
