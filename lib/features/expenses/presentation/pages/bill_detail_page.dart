@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
-import 'package:fairsplit/injection.dart';
+import 'package:fairsplit/features/expenses/presentation/view_models/bill_detail_view_model.dart';
+import 'package:fairsplit/injection.dart' as di;
 import 'package:intl/intl.dart';
 
 class BillDetailPage extends ConsumerStatefulWidget {
@@ -18,19 +19,54 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(billDetailViewModelProvider.notifier)
-          .getBillDetail(widget.billId);
-      ref
-          .read(billPaymentsViewModelProvider.notifier)
-          .getBillPayments(widget.billId);
+      if (mounted) {
+        try {
+          ref
+              .read(di.billDetailViewModelProvider.notifier)
+              .getBillDetail(widget.billId);
+        } catch (e) {
+          print('Error initializing bill detail: $e');
+        }
+      }
     });
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final billState = ref.watch(billDetailViewModelProvider);
-    final paymentsState = ref.watch(billPaymentsViewModelProvider);
+    final billState = ref.watch(di.billDetailViewModelProvider);
+
+    // Show success/error messages
+    ref.listen<BillDetailState>(di.billDetailViewModelProvider, (
+      previous,
+      next,
+    ) {
+      if (!mounted) return;
+
+      try {
+        if (next.successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.successMessage!),
+              backgroundColor: Colors.green,
+            ),
+          );
+          ref.read(di.billDetailViewModelProvider.notifier).clearMessages();
+        }
+        if (next.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+          );
+          ref.read(di.billDetailViewModelProvider.notifier).clearMessages();
+        }
+      } catch (e) {
+        print('Error showing message: $e');
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -41,19 +77,15 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back, color: Colors.black),
         ),
-        title: billState.when(
-          data: (bill) => Text(
-            bill.title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          loading: () =>
-              const Text('Loading...', style: TextStyle(color: Colors.black)),
-          error: (error, stack) =>
-              const Text('Error', style: TextStyle(color: Colors.red)),
-        ),
+        title: billState.bill != null
+            ? Text(
+                billState.bill!.title,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : const Text('Loading...', style: TextStyle(color: Colors.black)),
         actions: [
           IconButton(
             onPressed: () => _showBillMenu(context),
@@ -61,41 +93,43 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
           ),
         ],
       ),
-      body: billState.when(
-        data: (bill) => _buildBillContent(bill, paymentsState),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-              const SizedBox(height: 16),
-              Text(
-                'Không thể tải hóa đơn',
-                style: TextStyle(color: Colors.red[600], fontSize: 16),
+      body: billState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : billState.error != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Không thể tải hóa đơn',
+                    style: TextStyle(color: Colors.red[600], fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => ref
+                        .read(di.billDetailViewModelProvider.notifier)
+                        .getBillDetail(widget.billId),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => ref
-                    .read(billDetailViewModelProvider.notifier)
-                    .getBillDetail(widget.billId),
-                child: const Text('Thử lại'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: billState.whenOrNull(
-        data: (bill) => FloatingActionButton(
-          onPressed: () => _showAddPaymentDialog(context, bill),
-          backgroundColor: const Color(0xFF87CEEB),
-          child: const Icon(Icons.payment, color: Colors.white),
-        ),
-      ),
+            )
+          : billState.bill != null
+          ? _buildBillContent(billState.bill!)
+          : const Center(child: Text('Không có dữ liệu')),
+      floatingActionButton: billState.bill != null
+          ? FloatingActionButton(
+              onPressed: () => _showAddPaymentDialog(context, billState.bill!),
+              backgroundColor: const Color(0xFF87CEEB),
+              child: const Icon(Icons.payment, color: Colors.white),
+            )
+          : null,
     );
   }
 
-  Widget _buildBillContent(Bill bill, AsyncValue<List<Payment>> paymentsState) {
+  Widget _buildBillContent(Bill bill) {
     final formatter = NumberFormat('#,###');
 
     return SingleChildScrollView(
@@ -111,8 +145,8 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
           _buildParticipantsCard(bill, formatter),
           const SizedBox(height: 16),
 
-          // Payments Section
-          _buildPaymentsSection(paymentsState, formatter),
+          // Payments Section - Use payments from bill object
+          _buildPaymentsSection(bill.payments, formatter),
         ],
       ),
     );
@@ -311,10 +345,7 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
     );
   }
 
-  Widget _buildPaymentsSection(
-    AsyncValue<List<Payment>> paymentsState,
-    NumberFormat formatter,
-  ) {
+  Widget _buildPaymentsSection(List<Payment> payments, NumberFormat formatter) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -332,40 +363,29 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () => ref
-                      .read(billPaymentsViewModelProvider.notifier)
-                      .refreshPayments(),
+                      .read(di.billDetailViewModelProvider.notifier)
+                      .getBillDetail(widget.billId),
                   icon: const Icon(Icons.refresh, size: 16),
                   label: const Text('Làm mới'),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            paymentsState.when(
-              data: (payments) => payments.isEmpty
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          'Chưa có thanh toán nào',
-                          style: TextStyle(color: Colors.grey),
-                        ),
+            payments.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Chưa có thanh toán nào',
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    )
-                  : Column(
-                      children: payments
-                          .map(
-                            (payment) => _buildPaymentItem(payment, formatter),
-                          )
-                          .toList(),
                     ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Text(
-                  'Lỗi khi tải thanh toán: $error',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ),
+                  )
+                : Column(
+                    children: payments
+                        .map((payment) => _buildPaymentItem(payment, formatter))
+                        .toList(),
+                  ),
           ],
         ),
       ),
@@ -418,6 +438,33 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
               Text(
                 _getPaymentMethodText(payment.method),
                 style: TextStyle(color: Colors.grey[600], fontSize: 10),
+              ),
+            ],
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') {
+                _showEditPaymentDialog(payment);
+              } else if (value == 'delete') {
+                _showDeletePaymentDialog(payment);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: ListTile(
+                  leading: Icon(Icons.edit),
+                  title: Text('Chỉnh sửa'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Xóa', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
               ),
             ],
           ),
@@ -482,6 +529,11 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
   }
 
   void _showBillMenu(BuildContext context) {
+    final billState = ref.read(di.billDetailViewModelProvider);
+    final bill = billState.bill;
+
+    if (bill == null) return;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -495,7 +547,7 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
               title: const Text('Chỉnh sửa hóa đơn'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to edit bill page
+                _showEditBillDialog(context, bill);
               },
             ),
             ListTile(
@@ -514,7 +566,7 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Delete functionality
+                _showDeleteBillDialog(context, bill);
               },
             ),
           ],
@@ -623,8 +675,8 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
                   );
 
                   ref
-                      .read(billDetailViewModelProvider.notifier)
-                      .addPayment(request);
+                      .read(di.billDetailViewModelProvider.notifier)
+                      .addPayment(widget.billId, request);
                   Navigator.pop(context);
                 }
               },
@@ -639,6 +691,259 @@ class _BillDetailPageState extends ConsumerState<BillDetailPage> {
           ],
         );
       },
+    );
+  }
+
+  void _showEditPaymentDialog(Payment payment) {
+    final formKey = GlobalKey<FormState>();
+    final amountController = TextEditingController(
+      text: payment.amount.toString(),
+    );
+    final notesController = TextEditingController(text: payment.notes);
+    String selectedMethod = payment.method;
+    String selectedPaidBy = payment.paidBy;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final billState = ref.watch(di.billDetailViewModelProvider);
+
+            return AlertDialog(
+              title: const Text('Chỉnh sửa thanh toán'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: amountController,
+                        decoration: const InputDecoration(
+                          labelText: 'Số tiền',
+                          border: OutlineInputBorder(),
+                          suffixText: 'VND',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'Vui lòng nhập số tiền';
+                          if (double.tryParse(value) == null)
+                            return 'Số tiền không hợp lệ';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: selectedMethod,
+                        decoration: const InputDecoration(
+                          labelText: 'Phương thức thanh toán',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'bank_transfer',
+                            child: Text('Chuyển khoản'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cash',
+                            child: Text('Tiền mặt'),
+                          ),
+                          DropdownMenuItem(value: 'other', child: Text('Khác')),
+                        ],
+                        onChanged: (value) => selectedMethod = value!,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: notesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ghi chú (tùy chọn)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  onPressed: billState.isLoading
+                      ? null
+                      : () {
+                          if (formKey.currentState!.validate()) {
+                            final request = CreatePaymentRequest(
+                              amount: double.parse(amountController.text),
+                              paidBy: selectedPaidBy,
+                              paidTo: payment.paidTo,
+                              date: payment.date,
+                              method: selectedMethod,
+                              notes: notesController.text,
+                            );
+
+                            Navigator.pop(context);
+                            if (payment.id.isNotEmpty) {
+                              ref
+                                  .read(di.billDetailViewModelProvider.notifier)
+                                  .updatePayment(
+                                    widget.billId,
+                                    payment.id,
+                                    request,
+                                  );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Không thể cập nhật thanh toán: ID không hợp lệ',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF87CEEB),
+                  ),
+                  child: billState.isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Cập nhật',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showDeletePaymentDialog(Payment payment) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final billState = ref.watch(di.billDetailViewModelProvider);
+
+            return AlertDialog(
+              title: const Text('Xác nhận xóa'),
+              content: Text(
+                'Bạn có chắc chắn muốn xóa thanh toán ${NumberFormat('#,##0', 'vi').format(payment.amount)} VND?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  onPressed: billState.isLoading
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          if (payment.id.isNotEmpty) {
+                            ref
+                                .read(di.billDetailViewModelProvider.notifier)
+                                .deletePayment(widget.billId, payment.id);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Không thể xóa thanh toán: ID không hợp lệ',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: billState.isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Xóa',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditBillDialog(BuildContext context, Bill bill) {
+    // For now, show a simple dialog since we don't have group members data
+    // In a real app, you would need to get group members from the group
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chỉnh sửa hóa đơn'),
+        content: const Text(
+          'Tính năng chỉnh sửa hóa đơn sẽ được cập nhật sau.\n\nBạn có thể sử dụng form dialog với danh sách thành viên từ group.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteBillDialog(BuildContext context, Bill bill) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa hóa đơn'),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa hóa đơn "${bill.title}"?\n\nHành động này không thể hoàn tác.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref
+                  .read(di.billDetailViewModelProvider.notifier)
+                  .deleteBill(bill.id);
+              // Navigate back after deletion
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
     );
   }
 }

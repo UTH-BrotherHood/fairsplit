@@ -204,11 +204,16 @@ class CreateBillRequest {
 
 class CreateBillParticipant {
   final String userId;
+  final double? share;
 
-  CreateBillParticipant({required this.userId});
+  CreateBillParticipant({required this.userId, this.share});
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId};
+    final Map<String, dynamic> data = {'userId': userId};
+    if (share != null) {
+      data['share'] = share;
+    }
+    return data;
   }
 }
 
