@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/expenses/domain/entities/bill.dart';
+import 'package:fairsplit/features/groups/domain/entities/group.dart';
+import 'package:fairsplit/features/groups/presentation/viewmodels/group_member_view_model.dart';
 import 'package:fairsplit/features/profile/data/datasources/profile_local_datasource.dart';
 import 'package:fairsplit/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:fairsplit/features/auth/data/datasources/user_remote_datasource.dart';
@@ -19,6 +21,10 @@ class CreateBillPage extends ConsumerStatefulWidget {
 }
 
 class _CreateBillPageState extends ConsumerState<CreateBillPage> {
+  // Thêm danh sách participant được chọn
+  List<UserSearchResult> _selectedParticipants = [];
+  final TextEditingController _participantSearchController =
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -34,14 +40,18 @@ class _CreateBillPageState extends ConsumerState<CreateBillPage> {
   bool _isLoadingCategories = false;
 
   final List<String> _splitMethods = ['equal', 'percentage'];
-
   final List<String> _currencies = ['VND', 'USD'];
-
   final List<String> _statuses = ['pending', 'partially_paid', 'paid'];
 
   bool _isLoading = false;
   bool _isEditing = false;
   String? _currentUserId;
+
+  // Hàm tìm kiếm user, đặt ngay sau biến khai báo
+
+  // Hàm tìm kiếm user, phải đặt trước khi dùng trong build
+
+  // Hàm tìm kiếm user, phải đặt trước khi dùng trong build
 
   @override
   void initState() {
@@ -378,7 +388,268 @@ class _CreateBillPageState extends ConsumerState<CreateBillPage> {
             }
           },
         ),
+        const SizedBox(height: 24),
+        _buildParticipantSection(),
       ],
+    );
+  }
+
+  Widget _buildParticipantSection() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final userSearchState = ref.watch(userSearchViewModelProvider);
+        void _onSearchUser() {
+          final value = _participantSearchController.text.trim();
+          if (value.isNotEmpty) {
+            ref.read(userSearchViewModelProvider.notifier).searchUsers(value);
+          } else {
+            ref.read(userSearchViewModelProvider.notifier).clearSearch();
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Thành viên tham gia',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _participantSearchController,
+                      decoration: const InputDecoration(
+                        hintText:
+                            'Nhập email người dùng và nhấn Enter hoặc nút tìm kiếm...',
+                        prefixIcon: Icon(Icons.email, color: Colors.grey),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (value) {
+                        _onSearchUser();
+                      },
+                      onChanged: (value) {
+                        if (value.isEmpty) {
+                          ref
+                              .read(userSearchViewModelProvider.notifier)
+                              .clearSearch();
+                        }
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      icon: const Icon(Icons.search, color: Color(0xFF4A90E2)),
+                      onPressed: _onSearchUser,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            userSearchState.when(
+              data: (searchResponse) {
+                if (searchResponse.users.isEmpty &&
+                    _participantSearchController.text.isNotEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          color: Colors.orange[600],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Không tìm thấy người dùng nào với email "${_participantSearchController.text}"',
+                            style: TextStyle(color: Colors.orange[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (searchResponse.users.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            color: Colors.green[600],
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Tìm thấy ${searchResponse.users.length} người dùng:',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...searchResponse.users.map((user) {
+                      final alreadySelected = _selectedParticipants.any(
+                        (u) => u.id == user.id,
+                      );
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: const Color(0xFF4A90E2),
+                            backgroundImage:
+                                user.avatarUrl != null &&
+                                    user.avatarUrl!.isNotEmpty
+                                ? NetworkImage(user.avatarUrl!)
+                                : null,
+                            child:
+                                (user.avatarUrl == null ||
+                                    user.avatarUrl!.isEmpty)
+                                ? Text(
+                                    user.username.isNotEmpty
+                                        ? user.username[0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(color: Colors.white),
+                                  )
+                                : null,
+                          ),
+                          title: Text(user.username),
+                          subtitle: Text(user.email),
+                          trailing: alreadySelected
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFF4A90E2),
+                                )
+                              : IconButton(
+                                  icon: const Icon(Icons.add_circle_outline),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedParticipants.add(user);
+                                    });
+                                  },
+                                ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                );
+              },
+              loading: () => Container(
+                padding: const EdgeInsets.all(16),
+                child: const Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Đang tìm kiếm người dùng...',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              error: (error, _) => Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Lỗi tìm kiếm: $error',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_selectedParticipants.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Đã chọn:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Wrap(
+                spacing: 8,
+                children: _selectedParticipants
+                    .map(
+                      (user) => Chip(
+                        label: Text(user.username),
+                        avatar:
+                            (user.avatarUrl != null &&
+                                user.avatarUrl!.isNotEmpty)
+                            ? CircleAvatar(
+                                backgroundImage: NetworkImage(user.avatarUrl!),
+                              )
+                            : CircleAvatar(
+                                backgroundColor: const Color(0xFF4A90E2),
+                                child: Text(
+                                  user.username.isNotEmpty
+                                      ? user.username[0].toUpperCase()
+                                      : 'U',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedParticipants.removeWhere(
+                              (u) => u.id == user.id,
+                            );
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
