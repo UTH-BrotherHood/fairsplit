@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/profile/presentation/viewmodels/profile_view_model.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -18,6 +19,28 @@ class ProfilePage extends ConsumerWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.settings, color: Colors.grey),
+              onPressed: () {
+                context.push('/settings');
+              },
+            ),
+          ),
+        ],
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -203,7 +226,6 @@ class ProfilePage extends ConsumerWidget {
                           ? _formatDate(user.dateOfBirth)
                           : "Not provided",
                     ),
-
                     _ModernProfileField(
                       icon: Icons.calendar_today_outlined,
                       label: "Member Since",
