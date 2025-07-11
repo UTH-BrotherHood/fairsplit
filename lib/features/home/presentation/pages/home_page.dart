@@ -1,9 +1,8 @@
-import 'package:fairsplit/features/auth/presentation/viewmodels/auth_view_model.dart';
 import 'package:fairsplit/features/home/presentation/widgets/home_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/analytics_screen.dart';
 import 'package:fairsplit/features/home/presentation/widgets/expenses_screen.dart';
+import 'package:fairsplit/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final selectedPageProvider = StateProvider<int>((ref) => 0);
@@ -47,64 +46,11 @@ final pages = [
   const AnalyticsScreen(), // Analytics
   const ExpensesScreen(), // Expenses
   const PlaceholderScreen(title: 'Groups'), // Groups
-  const PlaceholderScreen(title: 'Profile'), // Profile
+  const ProfilePage(), // Profile
 ];
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
-
-  void _showSettingsMenu(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authViewModelProvider);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                if (user != null) {
-                  context.push('/profile');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/settings');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.group),
-              title: const Text('Groups'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/groups');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () async {
-                Navigator.pop(context);
-                await ref.read(authViewModelProvider.notifier).signOut();
-                if (context.mounted) {
-                  context.go('/login');
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,11 +58,6 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(child: pages[selectedPage]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showSettingsMenu(context, ref),
-        backgroundColor: const Color(0xFF87CEEB),
-        child: const Icon(Icons.settings, color: Colors.white),
-      ),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
         height: 90,

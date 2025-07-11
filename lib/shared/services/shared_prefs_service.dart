@@ -22,6 +22,14 @@ class SharedPrefsService {
     return prefs.getString(key);
   }
 
+  static Future<bool> setInt(String key, int value) {
+    return prefs.setInt(key, value);
+  }
+
+  static int? getInt(String key) {
+    return prefs.getInt(key);
+  }
+
   static Future<bool> remove(String key) {
     return prefs.remove(key);
   }

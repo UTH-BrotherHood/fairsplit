@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairsplit/features/profile/presentation/viewmodels/profile_view_model.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -14,9 +15,9 @@ class ProfilePage extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Mở trang/chức năng edit profile
+              context.push('/settings');
             },
           ),
         ],
