@@ -6,6 +6,7 @@ import 'package:fairsplit/features/auth/presentation/widgets/auth_gradient_butto
 import 'package:fairsplit/shared/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fairsplit/core/theme/app_colors.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
@@ -134,9 +135,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF1E1E2E),
-              const Color(0xFF0D0D14),
-              const Color(0xFF1A1A2E),
+              AppColors.primaryColor.withOpacity(0.1),
+              AppColors.backgroundColor,
+              AppColors.primaryColorLight.withOpacity(0.1),
             ],
           ),
         ),
@@ -148,7 +149,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
               left: -40,
               child: _buildFloatingCircle(
                 size: 100,
-                color: const Color(0xFFE83D7B).withOpacity(0.1),
+                color: AppColors.primaryColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -157,7 +158,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
               right: -20,
               child: _buildFloatingCircle(
                 size: 70,
-                color: const Color(0xFF6A3DE8).withOpacity(0.1),
+                color: AppColors.secondaryColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -166,7 +167,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
               left: 30,
               child: _buildFloatingCircle(
                 size: 50,
-                color: const Color(0xFF3D7BE8).withOpacity(0.1),
+                color: AppColors.accentColor.withOpacity(0.1),
                 animation: _fadeAnimation,
               ),
             ),
@@ -221,20 +222,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
                 width: 1,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_ios_new,
-              color: Colors.white,
+              color: AppColors.textPrimaryColor,
               size: 20,
             ),
           ),
         ),
         const SizedBox(width: 16),
-        const Text(
+        Text(
           'Create Account',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textPrimaryColor,
             letterSpacing: 0.5,
           ),
         ),
@@ -245,31 +246,13 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
   Widget _buildLogoSection() {
     return Column(
       children: [
-        Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE83D7B).withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: const Icon(Icons.person_add, color: Colors.white, size: 45),
-        ),
         const SizedBox(height: 20),
-        const Text(
-          'Join FairSplit',
+        Text(
+          'FairSplit',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.primaryColor,
             letterSpacing: 1.5,
           ),
         ),
@@ -278,7 +261,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
           'Start sharing expenses with friends',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.textSecondaryColor,
             letterSpacing: 0.5,
           ),
         ),
@@ -340,7 +323,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
                               : _obscureConfirmPassword)
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: Colors.white.withOpacity(0.6),
+                      color: AppColors.textSecondaryColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -385,9 +368,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
         },
         text: 'CREATE ACCOUNT',
         isLoading: _loading,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE83D7B), Color(0xFF6A3DE8)],
-        ),
       ),
     );
   }
@@ -406,12 +386,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage>
               children: [
                 TextSpan(
                   text: 'Already have an account? ',
-                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  style: TextStyle(color: AppColors.textSecondaryColor),
                 ),
-                const TextSpan(
+                TextSpan(
                   text: 'Sign In',
                   style: TextStyle(
-                    color: Color(0xFFE83D7B),
+                    color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

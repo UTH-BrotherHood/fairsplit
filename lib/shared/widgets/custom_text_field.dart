@@ -9,6 +9,8 @@ class CustomTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final VoidCallback? onTap;
   final bool readOnly;
+  final TextStyle? style;
+  final TextStyle? hintStyle;
 
   const CustomTextField({
     super.key,
@@ -20,6 +22,8 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.onTap,
     this.readOnly = false,
+    this.style,
+    this.hintStyle,
   });
 
   @override
@@ -30,8 +34,10 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       onTap: onTap,
       readOnly: readOnly,
+      style: style,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: hintStyle,
         prefixIcon: Icon(prefixIcon, color: Colors.grey[600]),
         suffixIcon: suffixIcon,
         contentPadding: const EdgeInsets.symmetric(
