@@ -32,43 +32,41 @@ class GroupsScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      children: [
+        Container(
+          height: kToolbarHeight, // giống chiều cao AppBar
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              const Text(
-                'Nhóm của tôi',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              const Center(
+                child: Text(
+                  'Nhóm của tôi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
-              const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A90E2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              Positioned(
+                right: 0,
                 child: IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.refresh, color: Colors.black87),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateGroupPage(),
-                      ),
-                    );
+                    // xử lý reload nếu cần
                   },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
             decoration: BoxDecoration(
               color: Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
@@ -86,8 +84,8 @@ class GroupsScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

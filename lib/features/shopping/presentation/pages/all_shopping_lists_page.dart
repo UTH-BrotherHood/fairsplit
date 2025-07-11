@@ -131,7 +131,7 @@ class _AllShoppingListsPageState extends ConsumerState<AllShoppingListsPage>
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Tất cả Shopping Lists',
+          'Shopping Lists',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
