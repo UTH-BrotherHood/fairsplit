@@ -302,16 +302,22 @@ class GroupsScreen extends ConsumerWidget {
               children: [
                 Icon(Icons.people, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 4),
-                Text(
-                  '${group.members.length} thành viên',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                Flexible(
+                  child: Text(
+                    '${group.members.length} thành viên',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Icon(Icons.receipt, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 4),
-                Text(
-                  '${group.bills.length} hóa đơn',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                Flexible(
+                  child: Text(
+                    '${group.bills.length} hóa đơn',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
