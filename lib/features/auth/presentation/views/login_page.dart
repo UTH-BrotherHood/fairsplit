@@ -182,6 +182,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Widget _buildHeader() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(width: 16),
         Text(
