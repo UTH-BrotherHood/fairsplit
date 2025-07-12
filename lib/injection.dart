@@ -11,6 +11,10 @@ import 'package:fairsplit/features/groups/data/repositories/group_repository_imp
 import 'package:fairsplit/features/groups/domain/repositories/group_repository.dart';
 import 'package:fairsplit/features/groups/domain/entities/group.dart';
 import 'package:fairsplit/features/groups/presentation/viewmodels/group_view_model.dart';
+import 'package:fairsplit/features/profile/data/datasources/analytics_remote_datasource.dart';
+import 'package:fairsplit/features/profile/data/repositories/analytics_repository_impl.dart';
+import 'package:fairsplit/features/profile/domain/repositories/analytics_repository.dart';
+import 'package:fairsplit/features/profile/presentation/viewmodels/analytics_view_model.dart';
 
 final selectedPageProvider = StateProvider<int>((ref) => 0);
 
@@ -63,4 +67,22 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
 final groupViewModelProvider =
     StateNotifierProvider<GroupViewModel, AsyncValue<GroupsResponse>>((ref) {
       return GroupViewModel(repository: ref.read(groupRepositoryProvider));
+    });
+
+// Analytics Data Sources
+final analyticsRemoteDataSourceProvider = Provider<AnalyticsRemoteDatasource>((
+  ref,
+) {
+  return AnalyticsRemoteDatasourceImpl(client: ref.read(httpClientProvider));
+});
+
+// Analytics Repository
+final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
+  return AnalyticsRepositoryImpl(ref.read(analyticsRemoteDataSourceProvider));
+});
+
+// Analytics ViewModel
+final analyticsViewModelProvider =
+    StateNotifierProvider<AnalyticsViewModel, AsyncValue<AnalyticsData>>((ref) {
+      return AnalyticsViewModel(ref.read(analyticsRepositoryProvider));
     });
