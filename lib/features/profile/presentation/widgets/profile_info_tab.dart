@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fairsplit/features/profile/presentation/viewmodels/profile_view_model.dart';
 import 'package:fairsplit/features/auth/domain/entities/auth.dart';
 
@@ -164,7 +165,7 @@ class ProfileInfoTab extends ConsumerWidget {
                 right: 0,
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, '/edit-profile');
+                    context.push('/edit-profile');
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),
